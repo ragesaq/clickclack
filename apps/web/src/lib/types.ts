@@ -63,6 +63,29 @@ export type Message = {
   nonce?: string;
   // Client-only status. Absent for sent messages.
   status?: "pending" | "failed";
+  // Clickglass side-channel: agent runtime metadata joined by msg_ id.
+  // Not part of clickclack's schema; carried out-of-band (sidecar /
+  // private events) and attached at render. See lib/chat/runtime.ts.
+  runtime?: MessageRuntime;
+};
+
+// ClawCanvas-parity runtime chrome. ClickClack messages carry none of this
+// natively; clickglass attaches it from a sidecar keyed by message id.
+export type ThinkingMode = "off" | "low" | "medium" | "high" | "xhigh" | "adaptive";
+
+export type MessageRuntime = {
+  // Effective model actually used for this turn, e.g. "anthropic/claude-opus-4-8".
+  model?: string;
+  // Agent's configured default model. If it differs from `model`, the turn
+  // ran under an override and the chip shows an overridden state.
+  agent_model?: string;
+  provider?: string;
+  thinking?: ThinkingMode;
+  // Final wall-clock duration of the turn in ms (receipt).
+  duration_ms?: number;
+  // Token accounting when available.
+  tokens_in?: number;
+  tokens_out?: number;
 };
 
 export type MessagePage = {

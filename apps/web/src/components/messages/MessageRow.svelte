@@ -6,6 +6,7 @@
   import type { Message } from "../../lib/types";
   import MediaAttachment from "../MediaAttachment.svelte";
   import QuoteBlock from "./QuoteBlock.svelte";
+  import RuntimeChrome from "./RuntimeChrome.svelte";
 
   type Props = {
     message: Message;
@@ -50,6 +51,7 @@
   <div class="message-content">
     <QuoteBlock {message} onJump={onJumpToQuote} />
     <div class="markdown" use:enhanceMarkdownGifs>{@html markdown(message.body)}</div>
+    <RuntimeChrome runtime={message.runtime} />
     {#if message.attachments?.length}
       <div class="attachment-grid" aria-label="Attachments">
         {#each message.attachments as attachment (attachment.id)}

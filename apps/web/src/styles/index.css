@@ -8,3 +8,6 @@
 @import "./composer.css";
 @import "./thread.css";
 @import "./modals.css";
+
+/* ClawCanvas reskin, imported last so it overrides base tokens. */
+@import "./clawcanvas-theme.css";

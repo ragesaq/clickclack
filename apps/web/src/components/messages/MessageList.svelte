@@ -26,6 +26,7 @@
   import { Virtualizer, type VirtualizerHandle } from "virtua/svelte";
   import { groupMessages, type MessageGroup as Group } from "../../lib/chat/messages";
   import { dmTitle } from "../../lib/chat/people";
+  import { seedDemoRuntime, withRuntime } from "../../lib/chat/runtime";
   import type { Channel, DirectConversation, Message } from "../../lib/types";
   import HistoryLoader from "./HistoryLoader.svelte";
   import MessageGroup from "./MessageGroup.svelte";
@@ -189,6 +190,13 @@
   });
   let canUseUnreadDivider = $derived(unreadBoundaryLoaded && listSpansUnreadBoundary);
 
+  // Join runtime metadata (model/thinking/duration) onto messages by id before
+  // grouping. Pure attach; messages without sidecar runtime are unchanged.
+  let decoratedMessages = $derived.by<Message[]>(() => {
+    seedDemoRuntime(messages);
+    return messages.map(withRuntime);
+  });
+
   let items = $derived.by<Item[]>(() => {
     const out: Item[] = [];
     let inserted = false;
@@ -198,7 +206,7 @@
       if (m.author?.id === currentUserID || m.author_id === currentUserID) return false;
       return dividerUnreadCount > 0 && (m.channel_seq || 0) > unreadBoundarySeq;
     };
-    for (const group of groupMessages(messages)) {
+    for (const group of groupMessages(decoratedMessages)) {
       let splitIdx = -1;
       if (!inserted) {
         for (let i = 0; i < group.messages.length; i++) {

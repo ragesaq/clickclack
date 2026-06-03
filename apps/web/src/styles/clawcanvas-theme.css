@@ -1,0 +1,165 @@
+/* ============================================================
+   ClawCanvas theme layer for Clickglass
+   ------------------------------------------------------------
+   Retunes clickclack's design tokens to the modern ClawCanvas
+   surface (Discord-flavored blurple dark). Imported LAST so it
+   wins over base.css without editing upstream component CSS.
+   Palette sourced from the live ClawCanvas MVP:
+     --bg #1e1f22 / --accent #7289da / rail #0e0e10 / panel #232428
+   ============================================================ */
+
+:root {
+  /* Force the ClawCanvas dark surface regardless of OS scheme.
+     ClawCanvas is a dark product; light mode is out of scope for the
+     prototype. */
+  color-scheme: dark;
+
+  --ic-blurple: #7289da;
+  --ic-rail: #0e0e10;
+  --ic-bg: #1e1f22;
+  --ic-panel-solid: #232428;
+  --ic-channel-active: rgba(114, 137, 218, 0.1);
+
+  /* Map clickclack tokens onto ClawCanvas values */
+  --rail: var(--ic-rail);
+  --bg: var(--ic-bg);
+  --panel: rgba(255, 255, 255, 0.045);
+  --panel-2: rgba(255, 255, 255, 0.028);
+  --panel-3: rgba(255, 255, 255, 0.07);
+  --hover: rgba(255, 255, 255, 0.04);
+  --hover-strong: rgba(255, 255, 255, 0.07);
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --text: rgba(255, 255, 255, 0.9);
+  --text-strong: #ffffff;
+  --muted: rgba(255, 255, 255, 0.44);
+  --muted-2: rgba(255, 255, 255, 0.26);
+  --accent: var(--ic-blurple);
+  --accent-2: #5666ee;
+  --accent-soft: rgba(114, 137, 218, 0.16);
+  --accent-glow: 0 0 0 1px rgba(114, 137, 218, 0.32), 0 8px 30px -12px rgba(114, 137, 218, 0.5);
+  --success: rgba(74, 222, 128, 0.88);
+  --warn: #f5b050;
+  --danger: rgba(248, 113, 113, 0.85);
+  --shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.66);
+}
+
+/* Pin the override even when the OS is in light mode (base.css has a
+   prefers-color-scheme: light default set). */
+@media (prefers-color-scheme: light) {
+  :root {
+    --rail: var(--ic-rail);
+    --bg: var(--ic-bg);
+    --panel: rgba(255, 255, 255, 0.045);
+    --panel-2: rgba(255, 255, 255, 0.028);
+    --panel-3: rgba(255, 255, 255, 0.07);
+    --hover: rgba(255, 255, 255, 0.04);
+    --hover-strong: rgba(255, 255, 255, 0.07);
+    --line: rgba(255, 255, 255, 0.085);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --text: rgba(255, 255, 255, 0.9);
+    --text-strong: #ffffff;
+    --muted: rgba(255, 255, 255, 0.44);
+    --muted-2: rgba(255, 255, 255, 0.26);
+    --accent: var(--ic-blurple);
+    --accent-soft: rgba(114, 137, 218, 0.16);
+  }
+}
+
+body {
+  /* ClawCanvas uses a flat surface, not the warm radial wash. */
+  background: var(--ic-bg);
+}
+
+/* ---------- AGENT RAIL (was guild rail) ----------
+   ClawCanvas frames the left rail as AGENTS, not generic workspaces.
+   Solid near-black rail, blurple active pill, squircle that rounds to a
+   rounded-square on hover/active (Discord behavior). */
+
+.guild-rail {
+  background: var(--ic-rail);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.guild-rail .guild {
+  border-radius: 50%;
+  background: var(--ic-panel-solid);
+  color: var(--text);
+  transition:
+    border-radius 160ms ease,
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.guild-rail .guild:hover {
+  border-radius: 32%;
+  background: var(--accent);
+  color: #fff;
+}
+
+.guild-rail .guild-wrap.active .guild {
+  border-radius: 32%;
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Active agent gets the Discord left pill indicator. */
+.guild-rail .guild-wrap {
+  position: relative;
+}
+
+.guild-rail .guild-wrap.active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  border-radius: 0 4px 4px 0;
+  background: #fff;
+}
+
+.guild-rail .guild.home {
+  background: linear-gradient(135deg, var(--accent), #5666ee);
+  color: #fff;
+  border-radius: 30%;
+}
+
+/* ---------- SIDEBAR ---------- */
+
+.sidebar {
+  background: color-mix(in srgb, var(--ic-bg) 92%, #000);
+}
+
+.workspace-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* Channel rows: ClawCanvas hash style + blurple active fill. */
+.nav-item.channel.active {
+  background: var(--ic-channel-active);
+  color: var(--text-strong);
+}
+
+.nav-item.channel .hash {
+  color: var(--muted-2);
+}
+
+.nav-item.channel.active .hash {
+  color: var(--accent);
+}
+
+/* Presence dot uses ClawCanvas green. */
+.presence-dot.active {
+  background: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ic-bg) 80%, transparent);
+}
+
+/* ---------- TOPBAR ---------- */
+
+.topbar {
+  background: var(--ic-bg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}

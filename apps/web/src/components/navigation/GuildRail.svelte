@@ -31,9 +31,9 @@
   }
 </script>
 
-<nav id="workspace-navigation" class="guild-rail" aria-label="Workspaces">
-  <a class="guild home" title="ClickClack home" href="/">
-    <span>cc</span>
+<nav id="workspace-navigation" class="guild-rail" aria-label="Agents">
+  <a class="guild home" title="ClawCanvas home" href="/">
+    <span>IC</span>
   </a>
   <div class="guild-divider" aria-hidden="true"></div>
   <div class="guild-list">
@@ -55,8 +55,8 @@
     {/each}
     <button
       class="guild add"
-      title="Create workspace"
-      aria-label="Create workspace"
+      title="Add agent"
+      aria-label="Add agent"
       onclick={onToggleWorkspaceCreate}
     >+</button>
   </div>
@@ -70,8 +70,8 @@
     >
       <input
         value={workspaceName}
-        placeholder="Workspace name"
-        aria-label="Workspace name"
+        placeholder="Agent name"
+        aria-label="Agent name"
         oninput={(event) => onWorkspaceName(event.currentTarget.value)}
       />
     </form>

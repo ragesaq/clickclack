@@ -530,6 +530,42 @@ func TestHTTPServesEmbeddedAsset(t *testing.T) {
 	}
 }
 
+func TestHTTPServesUnderscorePrefixedEmbeddedAsset(t *testing.T) {
+	t.Parallel()
+	st := newEmptyHTTPStore(t)
+	server := httptest.NewServer(New(st, realtime.NewHub(), Options{}).Handler())
+	t.Cleanup(server.Close)
+
+	var assetPath string
+	if err := fs.WalkDir(webassets.Dist, "dist/_app/immutable", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasPrefix(filepath.Base(path), "_") {
+			return nil
+		}
+		assetPath = strings.TrimPrefix(path, "dist/")
+		return fs.SkipAll
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if assetPath == "" {
+		t.Skip("current web build has no underscore-prefixed assets")
+	}
+
+	resp, err := http.Get(server.URL + "/" + assetPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected underscore asset response, got %s", resp.Status)
+	}
+	if ct := resp.Header.Get("Content-Type"); strings.Contains(ct, "text/html") {
+		t.Fatalf("expected static asset content type, got %q", ct)
+	}
+}
+
 func TestListenAndServeStopsWithContext(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())
