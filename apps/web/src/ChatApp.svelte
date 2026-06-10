@@ -14,6 +14,7 @@
     type MessageWindowDirection,
   } from "./lib/chat/messageWindow";
   import { collectRecentPeople, dmTitle } from "./lib/chat/people";
+  import { coalesceAgentActivity } from "./lib/chat/agent-activity";
   import { redirectTypingToComposer, rememberTypeToFocusPointer } from "./lib/chat/typeToFocus";
   import { connectRealtime, type RealtimeConnection } from "./lib/realtime.svelte";
   import { notifyTyping, stopTyping } from "./lib/typing";
@@ -40,6 +41,8 @@
   const LIVE_EDGE_TOLERANCE_PX = 96;
   const LAST_CHANNEL_STORAGE_PREFIX = "clickclack:last-channel:v1:";
   const SHOW_AGENT_ACTIVITY_STORAGE_KEY = "clickclack:show-agent-activity:v1";
+  const HIDE_COMMENTARY_STORAGE_KEY = "clickclack:hide-commentary:v1";
+  const HIDE_TOOL_CALLS_STORAGE_KEY = "clickclack:hide-tool-calls:v1";
 
   export let routeWorkspaceID = "";
   export let routeTargetID = "";
@@ -80,10 +83,13 @@
   let profilePushoverUserKey = "";
   let profileStatus = "";
   let profileStatusError = false;
-  // Client-only preference: when false, durable agent activity rows
-  // (agent_commentary / agent_tool) are filtered out of the message stream.
-  // Defaults to on. Persisted in localStorage like other client prefs.
-  let showAgentActivity = true;
+  // Client-only preferences for agent activity. Consecutive same-turn
+  // agent_commentary/agent_tool rows are coalesced into one preamble block;
+  // these two independent flags drop the commentary prose and/or the tool-call
+  // sub-items from that block. When both are set the block is omitted entirely.
+  // Default: show both. Persisted in localStorage like other client prefs.
+  let hideCommentary = false;
+  let hideToolCalls = false;
   let status = "loading";
   let authRequired = false;
   let connected = false;
@@ -154,11 +160,10 @@
   $: activeUnreadSince = activeUnreadCount > 0
     ? unreadSinceForKey(activeConversationKey, activeUnreadBoundarySeq, messageWindows)
     : "";
-  // Filter durable agent activity rows when the client pref is off. Ordinary
-  // messages (kind absent or "message") always render.
-  $: visibleMessages = showAgentActivity
-    ? messages
-    : messages.filter((message) => message.kind !== "agent_commentary" && message.kind !== "agent_tool");
+  // Coalesce consecutive same-turn agent activity rows into one preamble block
+  // per turn, applying the two visibility flags. Ordinary messages pass through
+  // untouched and keep their order.
+  $: visibleMessages = coalesceAgentActivity(messages, { hideCommentary, hideToolCalls });
   $: sidePanelOpen = selectedThread !== null || selectedProfile !== null;
   $: recentPeople = collectRecentPeople(messages, directConversations, user?.id || "");
   $: mentionPeople = collectMentionPeople(user, recentPeople, moderationMembers, selectedDirect);
@@ -176,23 +181,37 @@
     : [];
 
   onMount(() => {
-    showAgentActivity = loadShowAgentActivity();
+    loadActivityPrefs();
     void boot();
   });
 
-  function loadShowAgentActivity(): boolean {
+  function loadActivityPrefs() {
     try {
-      // Default on: only an explicit "0" disables it.
-      return window.localStorage.getItem(SHOW_AGENT_ACTIVITY_STORAGE_KEY) !== "0";
+      // New flags default off (both shown). Migrate the legacy single toggle:
+      // if the operator had previously hidden all activity, carry that forward
+      // as both flags hidden.
+      const legacyHidden = window.localStorage.getItem(SHOW_AGENT_ACTIVITY_STORAGE_KEY) === "0";
+      hideCommentary = window.localStorage.getItem(HIDE_COMMENTARY_STORAGE_KEY) === "1" || legacyHidden;
+      hideToolCalls = window.localStorage.getItem(HIDE_TOOL_CALLS_STORAGE_KEY) === "1" || legacyHidden;
     } catch {
-      return true;
+      hideCommentary = false;
+      hideToolCalls = false;
     }
   }
 
-  function setShowAgentActivity(value: boolean) {
-    showAgentActivity = value;
+  function setHideCommentary(value: boolean) {
+    hideCommentary = value;
     try {
-      window.localStorage.setItem(SHOW_AGENT_ACTIVITY_STORAGE_KEY, value ? "1" : "0");
+      window.localStorage.setItem(HIDE_COMMENTARY_STORAGE_KEY, value ? "1" : "0");
+    } catch {
+      // Ignore unavailable storage; the in-memory pref still applies this session.
+    }
+  }
+
+  function setHideToolCalls(value: boolean) {
+    hideToolCalls = value;
+    try {
+      window.localStorage.setItem(HIDE_TOOL_CALLS_STORAGE_KEY, value ? "1" : "0");
     } catch {
       // Ignore unavailable storage; the in-memory pref still applies this session.
     }
@@ -2399,7 +2418,8 @@
     avatarURL={profileAvatarURL}
     pushoverEnabled={profilePushoverEnabled}
     pushoverUserKey={profilePushoverUserKey}
-    {showAgentActivity}
+    {hideCommentary}
+    {hideToolCalls}
     status={profileStatus}
     statusError={profileStatusError}
     onDisplayName={(value) => (profileDisplayName = value)}
@@ -2407,7 +2427,8 @@
     onAvatarURL={(value) => (profileAvatarURL = value)}
     onPushoverEnabled={(value) => (profilePushoverEnabled = value)}
     onPushoverUserKey={(value) => (profilePushoverUserKey = value)}
-    onShowAgentActivity={setShowAgentActivity}
+    onHideCommentary={setHideCommentary}
+    onHideToolCalls={setHideToolCalls}
     onClose={closeModal}
     onSave={() => void saveProfile()}
   />
