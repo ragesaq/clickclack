@@ -10,6 +10,8 @@
     avatarURL: string;
     pushoverEnabled: boolean;
     pushoverUserKey: string;
+    hideCommentary: boolean;
+    hideToolCalls: boolean;
     status: string;
     statusError: boolean;
     onDisplayName: (value: string) => void;
@@ -17,6 +19,8 @@
     onAvatarURL: (value: string) => void;
     onPushoverEnabled: (value: boolean) => void;
     onPushoverUserKey: (value: string) => void;
+    onHideCommentary: (value: boolean) => void;
+    onHideToolCalls: (value: boolean) => void;
     onClose: () => void;
     onSave: () => void;
   };
@@ -28,6 +32,8 @@
     avatarURL,
     pushoverEnabled,
     pushoverUserKey,
+    hideCommentary,
+    hideToolCalls,
     status,
     statusError,
     onDisplayName,
@@ -35,6 +41,8 @@
     onAvatarURL,
     onPushoverEnabled,
     onPushoverUserKey,
+    onHideCommentary,
+    onHideToolCalls,
     onClose,
     onSave,
   }: Props = $props();
@@ -109,6 +117,22 @@
           onchange={(event) => onPushoverEnabled(event.currentTarget.checked)}
         />
         <span>Pushover notifications</span>
+      </label>
+      <label class="field check-field">
+        <input
+          type="checkbox"
+          checked={hideCommentary}
+          onchange={(event) => onHideCommentary(event.currentTarget.checked)}
+        />
+        <span>Hide agent commentary</span>
+      </label>
+      <label class="field check-field">
+        <input
+          type="checkbox"
+          checked={hideToolCalls}
+          onchange={(event) => onHideToolCalls(event.currentTarget.checked)}
+        />
+        <span>Hide tool calls</span>
       </label>
       <label class="field">
         <span>Pushover user key</span>

@@ -6,6 +6,7 @@
   import type { Message } from "../../lib/types";
   import MediaAttachment from "../MediaAttachment.svelte";
   import QuoteBlock from "./QuoteBlock.svelte";
+  import PreambleBlock from "./PreambleBlock.svelte";
 
   type Props = {
     message: Message;
@@ -37,6 +38,12 @@
 
   let isPending = $derived(message.status === "pending");
   let isFailed = $derived(message.status === "failed");
+  // Coalesced agent activity: consecutive same-turn agent_commentary/agent_tool
+  // rows are collapsed (client-side) into one synthetic row carrying a
+  // preamble_block. When present, the row renders as a single preamble block
+  // (incrementing commentary + collapsed tool sub-items, collapse-to-one-line
+  // when the turn ends) instead of the final-answer treatment.
+  let preambleBlock = $derived(message.preamble_block);
 </script>
 
 <div
@@ -44,10 +51,16 @@
   class:selected
   class:is-pending={isPending}
   class:is-failed={isFailed}
+  class:is-preamble={Boolean(preambleBlock)}
+  class:is-preamble-collapsed={preambleBlock?.final === true}
+  class:is-preamble-live={preambleBlock?.final === false}
   data-message-id={message.id}
 >
   <span class="row-stamp" aria-hidden="true">{index === 0 ? "" : time(message.created_at)}</span>
   <div class="message-content">
+    {#if preambleBlock}
+      <PreambleBlock block={preambleBlock} />
+    {:else}
     <QuoteBlock {message} onJump={onJumpToQuote} />
     <div class="markdown" use:enhanceMarkdownGifs>{@html markdown(message.body)}</div>
     {#if message.attachments?.length}
@@ -72,7 +85,9 @@
         {/if}
       </div>
     {/if}
+    {/if}
   </div>
+  {#if !preambleBlock}
   <div class="message-actions" aria-label="Message actions">
     <button
       type="button"
@@ -99,4 +114,5 @@
       </svg>
     </button>
   </div>
+  {/if}
 </div>

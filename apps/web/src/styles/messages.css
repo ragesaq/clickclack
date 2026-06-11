@@ -645,6 +645,248 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Coalesced agent preamble block: one block per agent turn, interleaving
+   commentary prose with individually collapsed tool-call rows in arrival
+   order. The block opens while the turn is live and collapses to a single
+   line once the final answer lands. Theme-tied to --activity-accent (blue on
+   light, amber on dark); the wash is deliberately faint so the block reads as
+   secondary to the final answer, which renders as a clearly separate ordinary
+   message below it. */
+.message-row.is-preamble {
+  background: var(--activity-accent-soft);
+  /* Breathing room before the separate final-answer message below. */
+  margin-bottom: 6px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.message-row.is-preamble::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--activity-accent);
+}
+
+.message-row.is-preamble-collapsed .message-content {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.preamble-contract {
+  display: grid;
+  gap: 7px;
+  /* Grid/flex items default to min-width:auto and refuse to shrink below their
+     content's intrinsic size; a long unbroken token (path, command, id) would
+     then force the column wider than the bubble and overflow. min-width:0 down
+     the chain lets the wrap rules take over. */
+  min-width: 0;
+}
+
+.preamble-toggle {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--activity-accent);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.preamble-chevron {
+  color: var(--activity-accent);
+  font-size: 10px;
+  transition: transform 120ms ease;
+}
+
+.preamble-chevron.open {
+  transform: rotate(90deg);
+}
+
+.preamble-title,
+.preamble-state,
+.preamble-action {
+  line-height: 1;
+}
+
+.preamble-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--activity-accent);
+}
+
+.preamble-state {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--activity-accent) 30%, transparent);
+  border-radius: 999px;
+  color: var(--activity-accent);
+  font-size: 9.5px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.preamble-state.is-live {
+  border-color: color-mix(in srgb, var(--activity-accent) 55%, transparent);
+  animation: preamble-live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes preamble-live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preamble-state.is-live { animation: none; }
+}
+
+.preamble-action {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preamble-body {
+  color: var(--muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Interleaved preamble flow: commentary prose and tool-call rows in arrival
+   order (commentary, tool, commentary, tool), indented under the header. */
+.preamble-flow {
+  display: grid;
+  gap: 7px;
+  padding-left: 17px;
+  min-width: 0;
+}
+
+/* One tool call: a collapsed one-line summary (chevron + glyph + action +
+   name + truncated detail) on a light blue wash, expanding on click to the
+   full stored body. */
+.preamble-tool {
+  --tool-accent: var(--activity-accent);
+  min-width: 0;
+  border-radius: 7px;
+  background: var(--tool-call-bg);
+  overflow: hidden;
+}
+
+.preamble-tool-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  padding: 4px 9px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.preamble-tool-summary:hover {
+  background: var(--tool-call-bg-hover);
+}
+
+.preamble-tool-full {
+  display: grid;
+  gap: 5px;
+  padding: 2px 10px 8px 27px;
+  color: var(--muted);
+  font-size: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* The step-chain head, rendered as plain text (not markdown: chains contain
+   *, /, | that would break emphasis parsing). */
+.preamble-tool-full-head {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--tool-accent) 45%, var(--muted));
+}
+
+.preamble-tool-full-body {
+  min-width: 0;
+}
+
+.preamble-tool-full pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tool-line-chevron {
+  flex-shrink: 0;
+  font-size: 9px;
+  color: var(--muted-2);
+  transition: transform 120ms ease;
+}
+
+.tool-line-chevron.open {
+  transform: rotate(90deg);
+}
+
+.tool-line-glyph {
+  flex-shrink: 0;
+  font-size: 11px;
+  filter: saturate(0.85);
+}
+
+.tool-line-action {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--tool-accent) 38%, var(--text));
+}
+
+.tool-line-name {
+  flex-shrink: 0;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--tool-accent) 55%, var(--muted));
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.tool-line-detail {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  opacity: 0.85;
+}
+
 .message-row:hover .row-stamp {
   opacity: 1;
 }
