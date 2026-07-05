@@ -1,0 +1,107 @@
+/* ============================================================
+   Slate theme layer for ClickClack
+   ------------------------------------------------------------
+   Retunes ClickClack's design tokens to match the Clickglass
+   ClawCanvas surface: a neutral slate/graphite dark base with
+   blurple-blue accents and white text. Imported LAST from
+   index.css so it wins over base.css without editing upstream
+   component CSS.
+
+   Palette sourced from the live Clickglass ClawCanvas theme:
+     rail #0e0e10 / bg #1e1f22 / panel #232428 / accent #7289da
+   ============================================================ */
+
+:root {
+  /* Force the slate dark surface regardless of OS colour scheme.
+     Matches Clickglass, which ships dark-only. */
+  color-scheme: dark;
+
+  --ic-blurple: #7289da;
+  --ic-rail: #0e0e10;
+  --ic-bg: #1e1f22;
+  --ic-panel-solid: #232428;
+
+  /* Core surface + line tokens (ported from Clickglass) */
+  --rail: var(--ic-rail);
+  --bg: var(--ic-bg);
+  --panel: rgba(255, 255, 255, 0.045);
+  --panel-2: rgba(255, 255, 255, 0.028);
+  --panel-3: rgba(255, 255, 255, 0.07);
+  --hover: rgba(255, 255, 255, 0.04);
+  --hover-strong: rgba(255, 255, 255, 0.07);
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --text: rgba(255, 255, 255, 0.9);
+  --text-strong: #ffffff;
+  --muted: rgba(255, 255, 255, 0.44);
+  --muted-2: rgba(255, 255, 255, 0.26);
+
+  /* Accent family: blurple blue */
+  --accent: var(--ic-blurple);
+  --accent-2: #5666ee;
+  --accent-soft: rgba(114, 137, 218, 0.16);
+  --accent-glow: 0 0 0 1px rgba(114, 137, 218, 0.32), 0 8px 30px -12px rgba(114, 137, 218, 0.5);
+
+  --success: rgba(74, 222, 128, 0.88);
+  --warn: #f5b050;
+  --danger: rgba(248, 113, 113, 0.85);
+  --shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.66);
+
+  /* ClickClack-specific message/turn tokens, retuned to the slate
+     palette. These do not exist in Clickglass but drive ClickClack's
+     preamble/delivery two-tone and self-bubble shading, so they are
+     mapped here to keep the message column coherent on slate. */
+  --user-bubble-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  /* Preamble (working log) gold, deliberately recedes beneath delivery. */
+  --activity-accent: #d9a441;
+  --activity-accent-soft: rgba(217, 164, 65, 0.1);
+  /* Delivery (final answer) hero blue, brightened for the dark slate base. */
+  --delivery-accent: #7ea1ff;
+  --delivery-accent-soft: rgba(126, 161, 255, 0.1);
+  /* Tool-call rows inside the preamble: soft blurple wash. */
+  --tool-call-bg: rgba(114, 137, 218, 0.1);
+  --tool-call-bg-hover: rgba(114, 137, 218, 0.16);
+}
+
+/* Pin the override even when the OS reports a light preference
+   (base.css defines a light default under prefers-color-scheme). */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: dark;
+
+    --rail: var(--ic-rail);
+    --bg: var(--ic-bg);
+    --panel: rgba(255, 255, 255, 0.045);
+    --panel-2: rgba(255, 255, 255, 0.028);
+    --panel-3: rgba(255, 255, 255, 0.07);
+    --hover: rgba(255, 255, 255, 0.04);
+    --hover-strong: rgba(255, 255, 255, 0.07);
+    --line: rgba(255, 255, 255, 0.085);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --text: rgba(255, 255, 255, 0.9);
+    --text-strong: #ffffff;
+    --muted: rgba(255, 255, 255, 0.44);
+    --muted-2: rgba(255, 255, 255, 0.26);
+    --accent: var(--ic-blurple);
+    --accent-2: #5666ee;
+    --accent-soft: rgba(114, 137, 218, 0.16);
+    --accent-glow: 0 0 0 1px rgba(114, 137, 218, 0.32), 0 8px 30px -12px rgba(114, 137, 218, 0.5);
+    --success: rgba(74, 222, 128, 0.88);
+    --warn: #f5b050;
+    --danger: rgba(248, 113, 113, 0.85);
+    --shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.66);
+
+    --user-bubble-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+    --activity-accent: #d9a441;
+    --activity-accent-soft: rgba(217, 164, 65, 0.1);
+    --delivery-accent: #7ea1ff;
+    --delivery-accent-soft: rgba(126, 161, 255, 0.1);
+    --tool-call-bg: rgba(114, 137, 218, 0.1);
+    --tool-call-bg-hover: rgba(114, 137, 218, 0.16);
+  }
+}
+
+/* Clickglass uses a flat surface, not ClickClack's warm radial wash. */
+body {
+  background: var(--ic-bg);
+}

@@ -8,3 +8,6 @@
 @import "./composer.css";
 @import "./thread.css";
 @import "./modals.css";
+
+/* Slate reskin (Clickglass-matched), imported last so it overrides base tokens. */
+@import "./slate-theme.css";
