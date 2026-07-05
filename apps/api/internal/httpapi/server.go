@@ -611,6 +611,9 @@ func (s *Server) createMessage(w http.ResponseWriter, r *http.Request) {
 		TopicID         string `json:"topic_id"`
 		Kind            string `json:"kind"`
 		TurnID          string `json:"turn_id"`
+		AuthorModel     string `json:"author_model"`
+		AuthorThinking  string `json:"author_thinking"`
+		AuthorRuntime   string `json:"author_runtime"`
 	}
 	if err := readJSON(w, r, &body); err != nil {
 		writeError(w, http.StatusBadRequest, err)
@@ -620,10 +623,13 @@ func (s *Server) createMessage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !s.resolveMessageProvenance(w, act, body.AuthorModel, body.AuthorThinking, body.AuthorRuntime) {
+		return
+	}
 	if !s.requireBotChannelWorkspace(w, r, act, chi.URLParam(r, "channel_id")) {
 		return
 	}
-	message, event, err := s.store.CreateMessage(r.Context(), store.CreateMessageInput{ChannelID: chi.URLParam(r, "channel_id"), AuthorID: act.user.ID, Body: body.Body, QuotedMessageID: optionalString(body.QuotedMessageID), Nonce: body.Nonce, TopicID: body.TopicID, Kind: kind, TurnID: turnID})
+	message, event, err := s.store.CreateMessage(r.Context(), store.CreateMessageInput{ChannelID: chi.URLParam(r, "channel_id"), AuthorID: act.user.ID, Body: body.Body, QuotedMessageID: optionalString(body.QuotedMessageID), Nonce: body.Nonce, TopicID: body.TopicID, Kind: kind, TurnID: turnID, AuthorModel: body.AuthorModel, AuthorThinking: body.AuthorThinking, AuthorRuntime: body.AuthorRuntime})
 	if err == nil && event.ID != "" {
 		s.publishEvent(r.Context(), event)
 		if !store.IsActivityMessageKind(message.Kind) {
@@ -670,6 +676,22 @@ func (s *Server) resolveMessageKind(w http.ResponseWriter, act actor, rawKind, r
 		return "", "", false
 	}
 	return kind, rawTurnID, true
+}
+
+// resolveMessageProvenance enforces the PsiClawOps fork provenance contract:
+// author_model/author_thinking/author_runtime are bot-post attribution
+// metadata. A human session supplying any of them is a client contract
+// violation and fails closed with 403 (provenance must come from the agent
+// runtime, not a person).
+func (s *Server) resolveMessageProvenance(w http.ResponseWriter, act actor, model, thinking, runtime string) bool {
+	if model == "" && thinking == "" && runtime == "" {
+		return true
+	}
+	if act.botTokenID == "" {
+		writeError(w, http.StatusForbidden, errors.New("message provenance requires a bot token"))
+		return false
+	}
+	return true
 }
 
 func (s *Server) getMessage(w http.ResponseWriter, r *http.Request) {

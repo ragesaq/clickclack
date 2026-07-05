@@ -171,7 +171,12 @@ type Message struct {
 	// create path enforces this and rejects a non-empty turn_id on a 'message'
 	// kind with a 400 ErrTurnIDNotAllowed. It is optional for agent activity
 	// kinds (agent_commentary/agent_tool), which may carry one.
-	TurnID             string       `json:"turn_id,omitempty"`
+	TurnID string `json:"turn_id,omitempty"`
+	// Provenance (PsiClawOps fork): recorded model/thinking/runtime for the
+	// authoring agent. Empty for human messages and pre-provenance history.
+	AuthorModel        string       `json:"author_model,omitempty"`
+	AuthorThinking     string       `json:"author_thinking,omitempty"`
+	AuthorRuntime      string       `json:"author_runtime,omitempty"`
 	Author             *User        `json:"author,omitempty"`
 	Attachments        []Upload     `json:"attachments,omitempty"`
 	QuotedMessageID    *string      `json:"quoted_message_id,omitempty"`
@@ -483,6 +488,11 @@ type CreateMessageInput struct {
 	// API layer by AgentActivityWriteScope.
 	Kind   string
 	TurnID string
+	// Provenance (PsiClawOps fork): model/thinking/runtime attribution for
+	// bot-authored posts. Persisted verbatim; empty means "not recorded".
+	AuthorModel    string
+	AuthorThinking string
+	AuthorRuntime  string
 }
 
 type UpdateMessageInput struct {

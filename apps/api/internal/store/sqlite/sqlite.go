@@ -566,6 +566,11 @@ func (s *Store) CreateMessage(ctx context.Context, input store.CreateMessageInpu
 		}
 		return store.Message{}, store.Event{}, err
 	}
+	if input.AuthorModel != "" || input.AuthorThinking != "" || input.AuthorRuntime != "" {
+		if _, err := tx.ExecContext(ctx, `UPDATE messages SET author_model = ?, author_thinking = ?, author_runtime = ? WHERE id = ?`, input.AuthorModel, input.AuthorThinking, input.AuthorRuntime, id); err != nil {
+			return store.Message{}, store.Event{}, err
+		}
+	}
 	if err := qtx.InsertThreadState(ctx, id); err != nil {
 		return store.Message{}, store.Event{}, err
 	}
