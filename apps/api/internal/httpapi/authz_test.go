@@ -691,6 +691,43 @@ func TestHTTPServesEmbeddedAsset(t *testing.T) {
 	}
 }
 
+func TestHTTPServesPWAAssetsWithInstallHeaders(t *testing.T) {
+	t.Parallel()
+	st := newEmptyHTTPStore(t)
+	server := httptest.NewServer(New(st, realtime.NewHub(), Options{}).Handler())
+	t.Cleanup(server.Close)
+
+	tests := []struct {
+		path        string
+		contentType string
+		cache       string
+	}{
+		{path: "/manifest.webmanifest", contentType: "application/manifest+json"},
+		{path: "/service-worker.js", contentType: "text/javascript; charset=utf-8", cache: "no-cache"},
+		{path: "/icons/clickclack-192.png", contentType: "image/png"},
+		{path: "/icons/clickclack-512.png", contentType: "image/png"},
+		{path: "/icons/clickclack-maskable-512.png", contentType: "image/png"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.path, func(t *testing.T) {
+			resp, err := http.Get(server.URL + tc.path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("expected %s response, got %s", tc.path, resp.Status)
+			}
+			if got := resp.Header.Get("Content-Type"); got != tc.contentType {
+				t.Fatalf("expected %s content type %q, got %q", tc.path, tc.contentType, got)
+			}
+			if got := resp.Header.Get("Cache-Control"); got != tc.cache {
+				t.Fatalf("expected %s cache control %q, got %q", tc.path, tc.cache, got)
+			}
+		})
+	}
+}
+
 func TestListenAndServeStopsWithContext(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())

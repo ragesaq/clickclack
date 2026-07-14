@@ -1387,6 +1387,12 @@ func (s *Server) serveSPA(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		if file, err := dist.Open(strings.TrimPrefix(r.URL.Path, "/")); err == nil {
 			_ = file.Close()
+			switch r.URL.Path {
+			case "/manifest.webmanifest":
+				w.Header().Set("Content-Type", "application/manifest+json")
+			case "/service-worker.js":
+				w.Header().Set("Cache-Control", "no-cache")
+			}
 			http.FileServer(http.FS(dist)).ServeHTTP(w, r)
 			return
 		}
