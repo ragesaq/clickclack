@@ -30,6 +30,8 @@ export type Channel = {
   workspace_id: string;
   name: string;
   kind: string;
+  template: "chat" | "code";
+  code_mode: "single_user" | "multi_user";
   created_at: string;
   archived_at?: string;
   last_seq?: number;

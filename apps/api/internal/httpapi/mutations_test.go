@@ -65,10 +65,11 @@ func TestMutationAndEphemeralEndpoints(t *testing.T) {
 	updatedChannel := patchJSON[struct {
 		Channel store.Channel `json:"channel"`
 		Event   store.Event   `json:"event"`
-	}](t, server.URL+"/api/channels/"+channels[0].ID, map[string]any{"name": "dock"})
-	if updatedChannel.Channel.Name != "dock" || updatedChannel.Event.Type != "channel.updated" {
+	}](t, server.URL+"/api/channels/"+channels[0].ID, map[string]any{"name": "dock", "template": "code", "code_mode": "single_user"})
+	if updatedChannel.Channel.Name != "dock" || updatedChannel.Channel.Template != store.ChannelTemplateCode || updatedChannel.Channel.CodeMode != store.ChannelCodeModeSingleUser || updatedChannel.Event.Type != "channel.updated" {
 		t.Fatalf("unexpected channel update: %#v", updatedChannel)
 	}
+	expectStatus(t, http.MethodPatch, server.URL+"/api/channels/"+channels[0].ID, strings.NewReader(`{"code_mode":"everyone"}`), http.StatusBadRequest)
 	message := postJSON[struct {
 		Message store.Message `json:"message"`
 	}](t, server.URL+"/api/channels/"+channels[0].ID+"/messages", map[string]string{"body": "original"}).Message

@@ -64,6 +64,8 @@ CREATE TABLE channels (
   workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   kind TEXT NOT NULL,
+  template TEXT NOT NULL DEFAULT 'chat' CHECK (template IN ('chat', 'code')),
+  code_mode TEXT NOT NULL DEFAULT 'single_user' CHECK (code_mode IN ('single_user', 'multi_user')),
   created_at TEXT NOT NULL,
   archived_at TEXT,
   route_id TEXT,

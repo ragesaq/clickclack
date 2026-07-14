@@ -1,0 +1,227 @@
+.conversation-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.conversation-surface.has-code-rail {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+.conversation-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.conversation-column > .messages {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.code-workspace-rail {
+  min-width: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 180px),
+    var(--panel);
+  padding: 18px 16px;
+}
+
+.code-workspace-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.code-workspace-kicker {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.code-workspace-head h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.agent-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.agent-state i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted-2);
+}
+
+.agent-state.active {
+  color: var(--success);
+}
+
+.agent-state.active i {
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 15%, transparent);
+}
+
+.code-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 18px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+}
+
+.code-mode-switch button {
+  min-height: 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.code-mode-switch button:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.code-mode-switch button.active {
+  background: var(--panel);
+  color: var(--text-strong);
+  box-shadow: var(--key-edge);
+}
+
+.code-mode-switch button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.code-mode-switch button:disabled {
+  cursor: default;
+}
+
+.code-mode-copy,
+.code-mode-note,
+.code-mode-error {
+  margin: 10px 2px 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.code-mode-note {
+  color: var(--muted-2);
+}
+
+.code-mode-error {
+  color: var(--danger);
+}
+
+.code-workspace-panels {
+  display: grid;
+  gap: 0;
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.code-workspace-panels section {
+  display: grid;
+  gap: 6px;
+  padding: 15px 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.code-workspace-panels section header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-workspace-panels section header span {
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.code-workspace-panels h3,
+.code-workspace-panels p,
+.code-workspace-panels small {
+  margin: 0;
+}
+
+.code-workspace-panels h3 {
+  color: var(--text-strong);
+  font-size: 12px;
+}
+
+.code-workspace-panels p {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.code-workspace-panels small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .conversation-surface.has-code-rail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .conversation-surface.has-code-rail .code-workspace-rail {
+    order: -1;
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(250px, 320px);
+    align-items: center;
+    gap: 12px 18px;
+    overflow: visible;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+  }
+
+  .code-mode-switch {
+    margin: 0;
+  }
+
+  .code-mode-copy,
+  .code-mode-note,
+  .code-mode-error,
+  .code-workspace-panels {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .conversation-surface.has-code-rail .code-workspace-rail {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

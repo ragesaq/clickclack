@@ -1787,6 +1787,14 @@ components:
         kind:
           type: string
           default: public
+        template:
+          type: string
+          enum: [chat, code]
+          description: Optional channel layout. The server defaults this to chat.
+        code_mode:
+          type: string
+          enum: [single_user, multi_user]
+          description: Optional collaboration mode for code channels. The server defaults this to single_user.
     Topic:
       type: object
       required: [id, workspace_id, name, created_at]
@@ -1823,6 +1831,12 @@ components:
           type: string
         kind:
           type: string
+        template:
+          type: string
+          enum: [chat, code]
+        code_mode:
+          type: string
+          enum: [single_user, multi_user]
         archived:
           type: boolean
     CreateMessageRequest:
@@ -2024,7 +2038,7 @@ components:
           format: date-time
     Channel:
       type: object
-      required: [id, route_id, workspace_id, name, kind, created_at]
+      required: [id, route_id, workspace_id, name, kind, template, code_mode, created_at]
       properties:
         id:
           type: string
@@ -2037,6 +2051,12 @@ components:
           type: string
         kind:
           type: string
+        template:
+          type: string
+          enum: [chat, code]
+        code_mode:
+          type: string
+          enum: [single_user, multi_user]
         created_at:
           type: string
           format: date-time

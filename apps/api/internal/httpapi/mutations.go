@@ -23,6 +23,8 @@ func (s *Server) updateChannel(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name     string `json:"name"`
 		Kind     string `json:"kind"`
+		Template string `json:"template"`
+		CodeMode string `json:"code_mode"`
 		Archived *bool  `json:"archived"`
 	}
 	if err := readJSON(w, r, &body); err != nil {
@@ -32,7 +34,15 @@ func (s *Server) updateChannel(w http.ResponseWriter, r *http.Request) {
 	if !s.requireBotChannelWorkspace(w, r, act, chi.URLParam(r, "channel_id")) {
 		return
 	}
-	channel, event, err := s.store.UpdateChannel(r.Context(), store.UpdateChannelInput{ChannelID: chi.URLParam(r, "channel_id"), UserID: act.user.ID, Name: body.Name, Kind: body.Kind, Archived: body.Archived})
+	channel, event, err := s.store.UpdateChannel(r.Context(), store.UpdateChannelInput{
+		ChannelID: chi.URLParam(r, "channel_id"),
+		UserID:    act.user.ID,
+		Name:      body.Name,
+		Kind:      body.Kind,
+		Template:  body.Template,
+		CodeMode:  body.CodeMode,
+		Archived:  body.Archived,
+	})
 	if err == nil {
 		s.publishEvent(r.Context(), event)
 	}

@@ -214,6 +214,26 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 	if kind == "" {
 		kind = ch.Kind
 	}
+	template := ch.Template
+	if strings.TrimSpace(input.Template) != "" {
+		template, err = store.NormalizeChannelTemplate(input.Template)
+		if err != nil {
+			return store.Channel{}, store.Event{}, err
+		}
+	}
+	codeMode := ch.CodeMode
+	if strings.TrimSpace(input.CodeMode) != "" {
+		codeMode, err = store.NormalizeChannelCodeMode(input.CodeMode)
+		if err != nil {
+			return store.Channel{}, store.Event{}, err
+		}
+	}
+	if template == store.ChannelTemplateChat && strings.TrimSpace(input.CodeMode) == "" {
+		codeMode = store.ChannelCodeModeSingleUser
+	}
+	if err := store.ValidateChannelPresentation(template, codeMode); err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
 	archivedValue := ch.ArchivedAt
 	if input.Archived != nil {
 		archivedValue = nil
@@ -225,6 +245,8 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 	if err := qtx.UpdateChannel(ctx, storedb.UpdateChannelParams{
 		Name:       name,
 		Kind:       kind,
+		Template:   template,
+		CodeMode:   codeMode,
 		ArchivedAt: nullFromPtr(archivedValue),
 		ID:         ch.ID,
 	}); err != nil {
@@ -236,6 +258,8 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 	}
 	ch.Name = name
 	ch.Kind = kind
+	ch.Template = template
+	ch.CodeMode = codeMode
 	ch.ArchivedAt = archivedValue
 	return ch, event, tx.Commit()
 }

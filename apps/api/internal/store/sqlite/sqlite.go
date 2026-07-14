@@ -414,6 +414,17 @@ func (s *Store) GetChannel(ctx context.Context, channelID, userID string) (store
 }
 
 func (s *Store) CreateChannel(ctx context.Context, input store.CreateChannelInput) (store.Channel, store.Event, error) {
+	template, err := store.NormalizeChannelTemplate(input.Template)
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	codeMode, err := store.NormalizeChannelCodeMode(input.CodeMode)
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	if err := store.ValidateChannelPresentation(template, codeMode); err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return store.Channel{}, store.Event{}, err
@@ -425,7 +436,7 @@ func (s *Store) CreateChannel(ctx context.Context, input store.CreateChannelInpu
 	if err := requireNoModerationBlockTx(ctx, tx, input.WorkspaceID, input.UserID); err != nil {
 		return store.Channel{}, store.Event{}, err
 	}
-	ch := store.Channel{ID: newID("chn"), WorkspaceID: input.WorkspaceID, Name: slug(input.Name), Kind: input.Kind, CreatedAt: now()}
+	ch := store.Channel{ID: newID("chn"), WorkspaceID: input.WorkspaceID, Name: slug(input.Name), Kind: input.Kind, Template: template, CodeMode: codeMode, CreatedAt: now()}
 	if ch.Name == "" {
 		ch.Name = "general"
 	}
@@ -448,6 +459,8 @@ func (s *Store) CreateChannel(ctx context.Context, input store.CreateChannelInpu
 			WorkspaceID: ch.WorkspaceID,
 			Name:        ch.Name,
 			Kind:        ch.Kind,
+			Template:    ch.Template,
+			CodeMode:    ch.CodeMode,
 			CreatedAt:   ch.CreatedAt,
 		}); err != nil {
 			if isRouteIDConflict(err) {

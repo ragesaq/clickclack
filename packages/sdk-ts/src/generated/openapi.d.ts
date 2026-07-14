@@ -1194,6 +1194,16 @@ export interface components {
       name: string;
       /** @default public */
       kind: string;
+      /**
+       * @description Optional channel layout. The server defaults this to chat.
+       * @enum {string}
+       */
+      template?: "chat" | "code";
+      /**
+       * @description Optional collaboration mode for code channels. The server defaults this to single_user.
+       * @enum {string}
+       */
+      code_mode?: "single_user" | "multi_user";
     };
     Topic: {
       id: string;
@@ -1213,6 +1223,10 @@ export interface components {
     UpdateChannelRequest: {
       name?: string;
       kind?: string;
+      /** @enum {string} */
+      template?: "chat" | "code";
+      /** @enum {string} */
+      code_mode?: "single_user" | "multi_user";
       archived?: boolean;
     };
     CreateMessageRequest: {
@@ -1341,6 +1355,10 @@ export interface components {
       workspace_id: string;
       name: string;
       kind: string;
+      /** @enum {string} */
+      template: "chat" | "code";
+      /** @enum {string} */
+      code_mode: "single_user" | "multi_user";
       /** Format: date-time */
       created_at: string;
       /** Format: date-time */

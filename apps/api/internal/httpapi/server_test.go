@@ -99,8 +99,10 @@ func TestChatAPIVerticalSlice(t *testing.T) {
 	channel := channels.Channels[0]
 	createdChannel := postJSON[struct {
 		Channel store.Channel `json:"channel"`
-	}](t, server.URL+"/api/workspaces/"+workspace.ID+"/channels", map[string]string{"name": "random"})
-	if createdChannel.Channel.Name != "random" {
+	}](t, server.URL+"/api/workspaces/"+workspace.ID+"/channels", map[string]string{
+		"name": "random", "template": "code", "code_mode": "multi_user",
+	})
+	if createdChannel.Channel.Name != "random" || createdChannel.Channel.Template != store.ChannelTemplateCode || createdChannel.Channel.CodeMode != store.ChannelCodeModeMultiUser {
 		t.Fatalf("unexpected channel: %#v", createdChannel.Channel)
 	}
 

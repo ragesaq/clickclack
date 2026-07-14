@@ -146,6 +146,8 @@ export type Channel = {
   workspace_id: string;
   name: string;
   kind: string;
+  template: "chat" | "code";
+  code_mode: "single_user" | "multi_user";
   created_at: string;
   archived_at?: string;
   last_seq?: number;
@@ -657,7 +659,12 @@ export class ClickClackClient {
     },
     create: async (
       workspaceId: string,
-      input: { name: string; kind?: string },
+      input: {
+        name: string;
+        kind?: string;
+        template?: "chat" | "code";
+        code_mode?: "single_user" | "multi_user";
+      },
     ): Promise<Channel> => {
       const data = await this.request<{ channel: Channel }>(
         `/api/workspaces/${workspaceId}/channels`,
@@ -670,7 +677,13 @@ export class ClickClackClient {
     },
     update: async (
       channelId: string,
-      input: { name?: string; kind?: string; archived?: boolean },
+      input: {
+        name?: string;
+        kind?: string;
+        template?: "chat" | "code";
+        code_mode?: "single_user" | "multi_user";
+        archived?: boolean;
+      },
     ): Promise<Channel> => {
       const data = await this.request<{ channel: Channel }>(`/api/channels/${channelId}`, {
         method: "PATCH",

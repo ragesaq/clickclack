@@ -805,14 +805,23 @@ func (s *Server) createChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		Name string `json:"name"`
-		Kind string `json:"kind"`
+		Name     string `json:"name"`
+		Kind     string `json:"kind"`
+		Template string `json:"template"`
+		CodeMode string `json:"code_mode"`
 	}
 	if err := readJSON(w, r, &body); err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}
-	channel, event, err := s.store.CreateChannel(r.Context(), store.CreateChannelInput{WorkspaceID: chi.URLParam(r, "workspace_id"), Name: body.Name, Kind: body.Kind, UserID: act.user.ID})
+	channel, event, err := s.store.CreateChannel(r.Context(), store.CreateChannelInput{
+		WorkspaceID: chi.URLParam(r, "workspace_id"),
+		Name:        body.Name,
+		Kind:        body.Kind,
+		Template:    body.Template,
+		CodeMode:    body.CodeMode,
+		UserID:      act.user.ID,
+	})
 	if err == nil {
 		s.publishEvent(r.Context(), event)
 	}

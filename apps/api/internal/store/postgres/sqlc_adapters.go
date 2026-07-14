@@ -166,6 +166,8 @@ func storeChannelFromGetChannel(row storedb.GetChannelRow) store.Channel {
 		WorkspaceID: row.WorkspaceID,
 		Name:        row.Name,
 		Kind:        row.Kind,
+		Template:    row.Template,
+		CodeMode:    row.CodeMode,
 		CreatedAt:   row.CreatedAt,
 		ArchivedAt:  ptrFromNull(row.ArchivedAt),
 	}
@@ -178,6 +180,8 @@ func storeChannelFromListChannels(row storedb.ListChannelsRow) store.Channel {
 		WorkspaceID: row.WorkspaceID,
 		Name:        row.Name,
 		Kind:        row.Kind,
+		Template:    row.Template,
+		CodeMode:    row.CodeMode,
 		CreatedAt:   row.CreatedAt,
 		ArchivedAt:  ptrFromNull(row.ArchivedAt),
 		LastSeq:     row.LastSeq,

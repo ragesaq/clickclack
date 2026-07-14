@@ -758,7 +758,7 @@ func (q *Queries) GetBotTokenAuth(ctx context.Context, tokenHash string) (GetBot
 }
 
 const getChannel = `-- name: GetChannel :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, created_at, archived_at
 FROM channels
 WHERE id = $1
 `
@@ -769,6 +769,8 @@ type GetChannelRow struct {
 	WorkspaceID string         `json:"workspace_id"`
 	Name        string         `json:"name"`
 	Kind        string         `json:"kind"`
+	Template    string         `json:"template"`
+	CodeMode    string         `json:"code_mode"`
 	CreatedAt   string         `json:"created_at"`
 	ArchivedAt  sql.NullString `json:"archived_at"`
 }
@@ -782,6 +784,8 @@ func (q *Queries) GetChannel(ctx context.Context, id string) (GetChannelRow, err
 		&i.WorkspaceID,
 		&i.Name,
 		&i.Kind,
+		&i.Template,
+		&i.CodeMode,
 		&i.CreatedAt,
 		&i.ArchivedAt,
 	)
@@ -789,7 +793,7 @@ func (q *Queries) GetChannel(ctx context.Context, id string) (GetChannelRow, err
 }
 
 const getChannelByIDAndWorkspace = `-- name: GetChannelByIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, created_at, archived_at
 FROM channels
 WHERE workspace_id = $1
   AND id = $2
@@ -806,6 +810,8 @@ type GetChannelByIDAndWorkspaceRow struct {
 	WorkspaceID string         `json:"workspace_id"`
 	Name        string         `json:"name"`
 	Kind        string         `json:"kind"`
+	Template    string         `json:"template"`
+	CodeMode    string         `json:"code_mode"`
 	CreatedAt   string         `json:"created_at"`
 	ArchivedAt  sql.NullString `json:"archived_at"`
 }
@@ -819,6 +825,8 @@ func (q *Queries) GetChannelByIDAndWorkspace(ctx context.Context, arg GetChannel
 		&i.WorkspaceID,
 		&i.Name,
 		&i.Kind,
+		&i.Template,
+		&i.CodeMode,
 		&i.CreatedAt,
 		&i.ArchivedAt,
 	)
@@ -826,7 +834,7 @@ func (q *Queries) GetChannelByIDAndWorkspace(ctx context.Context, arg GetChannel
 }
 
 const getChannelByRouteIDAndWorkspace = `-- name: GetChannelByRouteIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, created_at, archived_at
 FROM channels
 WHERE workspace_id = $1
   AND route_id = $2
@@ -843,6 +851,8 @@ type GetChannelByRouteIDAndWorkspaceRow struct {
 	WorkspaceID string         `json:"workspace_id"`
 	Name        string         `json:"name"`
 	Kind        string         `json:"kind"`
+	Template    string         `json:"template"`
+	CodeMode    string         `json:"code_mode"`
 	CreatedAt   string         `json:"created_at"`
 	ArchivedAt  sql.NullString `json:"archived_at"`
 }
@@ -856,6 +866,8 @@ func (q *Queries) GetChannelByRouteIDAndWorkspace(ctx context.Context, arg GetCh
 		&i.WorkspaceID,
 		&i.Name,
 		&i.Kind,
+		&i.Template,
+		&i.CodeMode,
 		&i.CreatedAt,
 		&i.ArchivedAt,
 	)
@@ -1603,8 +1615,8 @@ func (q *Queries) InsertBotUser(ctx context.Context, arg InsertBotUserParams) er
 }
 
 const insertChannel = `-- name: InsertChannel :exec
-INSERT INTO channels (id, route_id, workspace_id, name, kind, created_at)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO channels (id, route_id, workspace_id, name, kind, template, code_mode, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 `
 
 type InsertChannelParams struct {
@@ -1613,6 +1625,8 @@ type InsertChannelParams struct {
 	WorkspaceID string         `json:"workspace_id"`
 	Name        string         `json:"name"`
 	Kind        string         `json:"kind"`
+	Template    string         `json:"template"`
+	CodeMode    string         `json:"code_mode"`
 	CreatedAt   string         `json:"created_at"`
 }
 
@@ -1623,6 +1637,8 @@ func (q *Queries) InsertChannel(ctx context.Context, arg InsertChannelParams) er
 		arg.WorkspaceID,
 		arg.Name,
 		arg.Kind,
+		arg.Template,
+		arg.CodeMode,
 		arg.CreatedAt,
 	)
 	return err
@@ -2436,7 +2452,7 @@ func (q *Queries) ListBotsOwnedBy(ctx context.Context, ownerUserID sql.NullStrin
 }
 
 const listChannels = `-- name: ListChannels :many
-SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.created_at, c.archived_at,
+SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.created_at, c.archived_at,
        CAST(COALESCE((SELECT MAX(channel_seq) FROM messages WHERE channel_id = c.id AND parent_message_id IS NULL), 0) AS BIGINT) AS last_seq,
        CAST(COALESCE((SELECT cr.last_read_seq FROM channel_reads cr WHERE cr.channel_id = c.id AND cr.user_id = $1), 0) AS BIGINT) AS last_read_seq,
        CAST(COALESCE((
@@ -2464,6 +2480,8 @@ type ListChannelsRow struct {
 	WorkspaceID string         `json:"workspace_id"`
 	Name        string         `json:"name"`
 	Kind        string         `json:"kind"`
+	Template    string         `json:"template"`
+	CodeMode    string         `json:"code_mode"`
 	CreatedAt   string         `json:"created_at"`
 	ArchivedAt  sql.NullString `json:"archived_at"`
 	LastSeq     int64          `json:"last_seq"`
@@ -2486,6 +2504,8 @@ func (q *Queries) ListChannels(ctx context.Context, arg ListChannelsParams) ([]L
 			&i.WorkspaceID,
 			&i.Name,
 			&i.Kind,
+			&i.Template,
+			&i.CodeMode,
 			&i.CreatedAt,
 			&i.ArchivedAt,
 			&i.LastSeq,
@@ -3617,13 +3637,17 @@ const updateChannel = `-- name: UpdateChannel :exec
 UPDATE channels
 SET name = $1,
     kind = $2,
-    archived_at = $3
-WHERE id = $4
+    template = $3,
+    code_mode = $4,
+    archived_at = $5
+WHERE id = $6
 `
 
 type UpdateChannelParams struct {
 	Name       string         `json:"name"`
 	Kind       string         `json:"kind"`
+	Template   string         `json:"template"`
+	CodeMode   string         `json:"code_mode"`
 	ArchivedAt sql.NullString `json:"archived_at"`
 	ID         string         `json:"id"`
 }
@@ -3632,6 +3656,8 @@ func (q *Queries) UpdateChannel(ctx context.Context, arg UpdateChannelParams) er
 	_, err := q.db.ExecContext(ctx, updateChannel,
 		arg.Name,
 		arg.Kind,
+		arg.Template,
+		arg.CodeMode,
 		arg.ArchivedAt,
 		arg.ID,
 	)

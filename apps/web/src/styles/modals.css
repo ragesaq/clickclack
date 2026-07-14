@@ -151,6 +151,89 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+.channel-choice-group {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.channel-choice-group legend {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.channel-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.channel-choice-grid label {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  cursor: pointer;
+}
+
+.channel-choice-grid label:hover {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+
+.channel-choice-grid label.active {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+  background: var(--accent-soft);
+}
+
+.channel-choice-grid input {
+  width: 14px;
+  height: 14px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.channel-choice-grid strong,
+.channel-choice-grid small {
+  display: block;
+}
+
+.channel-choice-grid strong {
+  color: var(--text-strong);
+  font-size: 12px;
+}
+
+.channel-choice-grid small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.code-mode-choice {
+  padding-top: 2px;
+}
+
+@media (max-width: 480px) {
+  .channel-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .channel-choice-grid label {
+    min-height: 0;
+  }
+}
+
 .check-field {
   display: flex;
   align-items: center;

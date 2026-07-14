@@ -21,6 +21,7 @@
   import { connectRealtime, type RealtimeConnection } from "./lib/realtime.svelte";
   import { notifyTyping, stopTyping } from "./lib/typing";
   import ChatComposer from "./components/composer/ChatComposer.svelte";
+  import CodeWorkspaceRail from "./components/code/CodeWorkspaceRail.svelte";
   import ArtifactViewer from "./components/artifacts/ArtifactViewer.svelte";
   import ImageViewer from "./components/media/ImageViewer.svelte";
   import MessageList, {
@@ -88,6 +89,11 @@
   let replyBody = "";
   let workspaceName = "";
   let channelName = "";
+  let newChannelTemplate: Channel["template"] = "chat";
+  let newChannelCodeMode: Channel["code_mode"] = "single_user";
+  let channelCreateStatus = "";
+  let codeModeUpdating = false;
+  let codeModeError = "";
   let directMemberID = "";
   let searchQuery = "";
   let searchResults: SearchResult[] = [];
@@ -180,6 +186,7 @@
   $: selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceID);
   $: currentWorkspaceRole = selectedWorkspace?.role || "";
   $: canDeleteAnyMessage = currentWorkspaceRole === "owner";
+  $: canManageChannel = currentWorkspaceRole === "owner";
   $: selectedProfileModeration = selectedProfile
     ? moderationMembers.find((member) => member.user.id === selectedProfile?.id)
     : undefined;
@@ -862,14 +869,46 @@
 
   async function createChannel() {
     if (!selectedWorkspaceID || !channelName.trim()) return;
-    const data = await api<{ channel: Channel }>(`/api/workspaces/${selectedWorkspaceID}/channels`, {
-      method: "POST",
-      body: JSON.stringify({ name: channelName, kind: "public" })
-    });
-    channelName = "";
-    channels = [...channels, data.channel];
-    showCreateChannel = false;
-    await navigateToApp(selectedWorkspaceID, data.channel.id);
+    channelCreateStatus = "";
+    try {
+      const data = await api<{ channel: Channel }>(
+        `/api/workspaces/${selectedWorkspaceID}/channels`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: channelName,
+            kind: "public",
+            template: newChannelTemplate,
+            code_mode: newChannelCodeMode,
+          }),
+        },
+      );
+      channelName = "";
+      newChannelTemplate = "chat";
+      newChannelCodeMode = "single_user";
+      channels = [...channels, data.channel];
+      showCreateChannel = false;
+      await navigateToApp(selectedWorkspaceID, data.channel.id);
+    } catch {
+      channelCreateStatus = "Could not create this channel. Check the settings and try again.";
+    }
+  }
+
+  async function updateCodeMode(mode: Channel["code_mode"]) {
+    if (!selectedChannel || selectedChannel.template !== "code" || selectedChannel.code_mode === mode || codeModeUpdating) return;
+    codeModeUpdating = true;
+    codeModeError = "";
+    try {
+      const data = await api<{ channel: Channel }>(`/api/channels/${selectedChannel.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ code_mode: mode }),
+      });
+      channels = channels.map((channel) => channel.id === data.channel.id ? data.channel : channel);
+    } catch {
+      codeModeError = "Could not update the code workspace mode.";
+    } finally {
+      codeModeUpdating = false;
+    }
   }
 
   async function selectChannel(channelID: string) {
@@ -2939,6 +2978,12 @@
       onOpenResult={(result) => void openSearchResult(result)}
     />
 
+    <div
+      class="conversation-surface"
+      class:has-code-rail={selectedChannel?.template === "code"}
+    >
+      <div class="conversation-column">
+
     <MessageList
       messages={visibleMessages}
       {selectedDirect}
@@ -2986,7 +3031,7 @@
     <TypingIndicator entries={typingEntries} currentUserID={user?.id} />
 
     <div class="composer-dock">
-    <AgentResponding active={agentResponding} />
+      <AgentResponding active={agentResponding} />
 
     <ChatComposer
       value={messageBody}
@@ -3021,6 +3066,19 @@
       onGifQuery={(value) => (gifQuery = value)}
       onPickGif={pickGif}
     />
+      </div>
+
+      </div>
+      {#if selectedChannel?.template === "code"}
+        <CodeWorkspaceRail
+        canManage={canManageChannel}
+        agentActive={agentResponding}
+        updating={codeModeUpdating}
+        error={codeModeError}
+        onMode={(mode) => void updateCodeMode(mode)}
+          channel={selectedChannel}
+        />
+      {/if}
     </div>
   </main>
 
@@ -3114,8 +3172,16 @@
 {#if showCreateChannel}
   <CreateChannelModal
     {channelName}
-    status=""
+    template={newChannelTemplate}
+    codeMode={newChannelCodeMode}
+    status={channelCreateStatus}
     onChannelName={(value) => (channelName = value)}
+    onTemplate={(value) => {
+      newChannelTemplate = value;
+      channelCreateStatus = "";
+      if (value === "chat") newChannelCodeMode = "single_user";
+    }}
+    onCodeMode={(value) => (newChannelCodeMode = value)}
     onClose={closeModal}
     onCreate={() => void createChannel()}
   />

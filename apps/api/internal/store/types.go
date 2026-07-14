@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -52,6 +53,55 @@ var (
 // ErrInvalidMessageKind is returned when a caller supplies a message kind that
 // is not one of the recognised values. HTTP callers surface it as a 400.
 var ErrInvalidMessageKind = errors.New("invalid message kind")
+
+// ErrInvalidChannelPresentation is returned when a channel template or code
+// collaboration mode is outside the public channel presentation contract.
+var ErrInvalidChannelPresentation = errors.New("invalid channel presentation")
+
+const (
+	ChannelTemplateChat = "chat"
+	ChannelTemplateCode = "code"
+
+	ChannelCodeModeSingleUser = "single_user"
+	ChannelCodeModeMultiUser  = "multi_user"
+)
+
+// NormalizeChannelTemplate validates a channel template. Empty values retain
+// the backwards-compatible chat default for callers created before templates
+// were introduced.
+func NormalizeChannelTemplate(value string) (string, error) {
+	switch strings.TrimSpace(value) {
+	case "", ChannelTemplateChat:
+		return ChannelTemplateChat, nil
+	case ChannelTemplateCode:
+		return ChannelTemplateCode, nil
+	default:
+		return "", ErrInvalidChannelPresentation
+	}
+}
+
+// NormalizeChannelCodeMode validates how a code channel presents agent work.
+// Existing and chat channels default to the single-user presentation.
+func NormalizeChannelCodeMode(value string) (string, error) {
+	switch strings.TrimSpace(value) {
+	case "", ChannelCodeModeSingleUser:
+		return ChannelCodeModeSingleUser, nil
+	case ChannelCodeModeMultiUser:
+		return ChannelCodeModeMultiUser, nil
+	default:
+		return "", ErrInvalidChannelPresentation
+	}
+}
+
+// ValidateChannelPresentation enforces the relationship between the channel
+// layout and its collaboration mode. Chat channels always use the inert
+// single-user default; multi-user mode only has meaning for code channels.
+func ValidateChannelPresentation(template, codeMode string) error {
+	if template != ChannelTemplateCode && codeMode != ChannelCodeModeSingleUser {
+		return ErrInvalidChannelPresentation
+	}
+	return nil
+}
 
 // ErrTurnIDNotAllowed is returned when an ordinary ('message') row is created
 // with a non-empty turn_id. turn_id correlates a sequence of agent activity
@@ -175,6 +225,8 @@ type Channel struct {
 	WorkspaceID string  `json:"workspace_id"`
 	Name        string  `json:"name"`
 	Kind        string  `json:"kind"`
+	Template    string  `json:"template"`
+	CodeMode    string  `json:"code_mode"`
 	CreatedAt   string  `json:"created_at"`
 	ArchivedAt  *string `json:"archived_at,omitempty"`
 	LastSeq     int64   `json:"last_seq"`
@@ -524,6 +576,8 @@ type CreateChannelInput struct {
 	WorkspaceID string
 	Name        string
 	Kind        string
+	Template    string
+	CodeMode    string
 	UserID      string
 }
 
@@ -532,6 +586,8 @@ type UpdateChannelInput struct {
 	UserID    string
 	Name      string
 	Kind      string
+	Template  string
+	CodeMode  string
 	Archived  *bool
 }
 
