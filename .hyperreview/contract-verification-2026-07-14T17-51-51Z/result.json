@@ -1,0 +1,550 @@
+{
+  "schemaVersion": "hyperreview-result/v0",
+  "artifactHeader": {
+    "artifactKind": "hyperreview-result",
+    "artifactContract": "hyperreview-result/v0",
+    "hyperreviewVersion": "0.15.0",
+    "hyperreviewBuild": "installed-0.15.0",
+    "hyperreviewSource": {
+      "repo": "PsiClawOps/hyperreview-local",
+      "commit": "unknown-installed-copy",
+      "skill": "hyperreview-contract"
+    },
+    "emitter": "agent:hyperreview-contract:reviewer:ollama/glm-5.2:cloud",
+    "emittedAt": "2026-07-14T17:51:51Z",
+    "validationProfile": "strict"
+  },
+  "mode": "contract-verification",
+  "reReview": false,
+  "target": {
+    "description": "Staged diff (pinned staged tree 50bf082920da2007328de9099104df0a94e4fb4e) adding pull_request_url and pull_request_title to the channel JSON/OpenAPI/SQLite/Postgres persistence contract",
+    "pinnedStagedTree": "50bf082920da2007328de9099104df0a94e4fb4e",
+    "stagedPathsSha256": "ada69e2ecfaec51652ce302049ae4c181a2769dc74d15734d88f8922cb1968c3",
+    "baseline": "HEAD 213f43ef9aee35b490a26f5051c5e39972978a01"
+  },
+  "targetType": "patch",
+  "scope": "Channel persistence contract surface: Go store.Channel JSON struct, OpenAPI Channel/UpdateChannelRequest/CreateChannelRequest, SQLite and Postgres channels table schema + migrations, sqlc UpdateChannel/GetChannel/ListChannels/GetChannelByIDAndWorkspace/GetChannelByRouteIDAndWorkspace queries and generated storedb, store adapter mapping, httpapi updateChannel handler, and TS SDK Channel type for new pull_request_url and pull_request_title fields.",
+  "verdict": "PASS",
+  "evidenceSources": [
+    {
+      "id": "E1",
+      "kind": "diff",
+      "description": "Staged contract-surface diff (git diff --cached) for types.go, openapi.yaml, httpapi/mutations.go, sqlite+postgres mutations.go, sqlc schema.sql/queries.sql, sqlc_adapters.go, generated storedb models.go/queries.sql.go, migrations, SDK index.ts/openapi.d.ts.",
+      "refs": [
+        {
+          "kind": "git",
+          "ref": "git diff --cached -- <contract paths>"
+        }
+      ],
+      "coverageNotes": "All contract-surface staged paths read in full."
+    },
+    {
+      "id": "E2",
+      "kind": "file",
+      "description": "Baseline (HEAD) pre-patch Channel struct, OpenAPI Channel/UpdateChannelRequest/CreateChannelRequest, and channels schema read from the working tree to construct the legacy contract shape.",
+      "refs": [
+        {
+          "kind": "git",
+          "ref": "HEAD 213f43ef9aee35b490a26f5051c5e39972978a01"
+        }
+      ],
+      "coverageNotes": "Pre-patch schema verified: Channel had no pull_request_url/pull_request_title; create/update requests omitted them."
+    },
+    {
+      "id": "E3",
+      "kind": "command",
+      "description": "go build ./apps/api/internal/store/... ./apps/api/internal/store/postgres/ ./apps/api/internal/httpapi/ (go1.26.5) exited 0; all touched Go packages compile.",
+      "refs": [
+        {
+          "kind": "command",
+          "ref": "go build ./apps/api/internal/store/... ./apps/api/internal/store/postgres/ ./apps/api/internal/httpapi/"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "kind": "test",
+      "description": "go test -count=1 -run 'NormalizePullRequest|ChannelPresentation' ./apps/api/internal/store/ ./apps/api/internal/store/sqlite/ -> ok (0.002s, 0.082s). Covers NormalizePullRequestContext accept/reject rules and channel presentation persistence incl. PR context set/clear on template switch.",
+      "refs": [
+        {
+          "kind": "command",
+          "ref": "go test -count=1 -run 'NormalizePullRequest|ChannelPresentation' ./apps/api/internal/store/ ./apps/api/internal/store/sqlite/"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "kind": "doc",
+      "description": "Reviewer parity matrix reviewer-parity-matrix.v0.json verified: version 0.4.0, sha256 522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6 (both operator path and vendored copy match).",
+      "refs": [
+        {
+          "kind": "file",
+          "ref": "/home/lumadmin/.openclaw/skills/_hyperreview-shared/contracts/reviewer-parity-matrix.v0.json"
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "kind": "command",
+      "description": "git rev-parse HEAD = 213f43ef9aee35b490a26f5051c5e39972978a01; git rev-parse --verify 50bf082920da2007328de9099104df0a94e4fb4e confirmed the pinned staged tree object exists.",
+      "refs": [
+        {
+          "kind": "command",
+          "ref": "git rev-parse HEAD; git rev-parse --verify 50bf082920da2007328de9099104df0a94e4fb4e"
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "scopeReviewed": [
+      "store.Channel JSON struct (pull_request_url, pull_request_title, non-omitempty)",
+      "store.UpdateChannelInput pointer fields + httpapi updateChannel request binding",
+      "OpenAPI Channel response (required + properties) and UpdateChannelRequest (optional) and CreateChannelRequest (omitted)",
+      "SQLite channels schema + migration 0028 (additive NOT NULL DEFAULT '')",
+      "Postgres channels schema + migration 0021 (additive NOT NULL DEFAULT '')",
+      "sqlc UpdateChannel/GetChannel/ListChannels/GetChannelByIDAndWorkspace/GetChannelByRouteIDAndWorkspace queries (column + scan order)",
+      "Generated storedb models.go/queries.sql.go (Row structs, scan order, UpdateChannelParams)",
+      "store adapter mapping (GetChannel/ListChannels rows -> store.Channel)",
+      "UpdateChannel normalize/preserve/clear logic in sqlite + postgres mutations.go",
+      "NormalizePullRequestContext validation + title derivation",
+      "TS SDK Channel type + updateChannel client signature (index.ts, generated openapi.d.ts)",
+      "Reviewer parity matrix identity/assurance resolution"
+    ],
+    "scopeNotReviewed": [
+      "Frontend apps/web changes (ChatApp.svelte, CodeWorkspaceRail.svelte, types.ts, code-workspace.css) — out of persistence-contract scope",
+      "e2e test tests/e2e/code-channel-mode.spec.ts — not executed",
+      "Built webassets dist artifacts — generated, excluded from reviewable churn",
+      "Postgres integration tests — no live Postgres available; postgres store built but not integration-tested",
+      "CreateChannel write path does not accept pull_request_* fields (by design); not altered",
+      "Runtime behavior under concurrent UpdateChannel calls"
+    ],
+    "coverageLevel": "high",
+    "limitations": [
+      "Go runtime tests executed for sqlite + shared store only; postgres path verified by build + mirrored logic, not integration test.",
+      "Edge-case findings (F-1, F-2) traced in source and supported by related passing tests, but the exact edge cases were not executed as standalone cases (read-only review; no test files added)."
+    ]
+  },
+  "confidence": {
+    "level": "high",
+    "anchor": 75,
+    "score": 0.8,
+    "rationale": "Legacy-payload backward compatibility verified by executing Go unit tests (NormalizePullRequestContext, ChannelPresentation persistence incl. PR set/clear) and building every touched Go package; baseline pre-patch contract read from HEAD; contract surface traced end-to-end across JSON, OpenAPI, SQL, adapters, and SDK. Advisory edge-case findings are source-traced (anchor 50) and not separately executed."
+  },
+  "analysisPackage": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "finding-ledger",
+    "judge"
+  ],
+  "passesRun": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "finding-ledger",
+    "judge"
+  ],
+  "conditionalPassesSkipped": [],
+  "findings": [
+    {
+      "id": "F-1",
+      "title": "Non-canonical pull_request_url re-send silently resets custom title to default",
+      "severity": "low",
+      "confidence": {
+        "level": "medium",
+        "anchor": 50,
+        "rationale": "Traced the title-clear branch in UpdateChannel (sqlite/mutations.go and postgres mirror); edge confirmed by code reading. Not executed as a standalone case (read-only review, no test file added)."
+      },
+      "symptom": "When a client sends pull_request_url equal to the currently stored PR but in non-canonical form (trailing slash, path-case variation, or surrounding whitespace) and omits pull_request_title, the stored custom title is reset to the derived default owner/repo #number.",
+      "source": "apps/api/internal/store/sqlite/mutations.go:243 and apps/api/internal/store/postgres/mutations.go:249 -- `if input.PullRequestTitle == nil && strings.TrimSpace(pullRequestURL) != ch.PullRequestURL { pullRequestTitle = \"\" }` compares the raw pre-normalization input against the canonical stored value.",
+      "consequence": "Custom human-readable PR titles are lost on a no-op URL re-send with cosmetic variation. The URL itself is not lost; only the title regenerates to default. Affects only new-field clients, not legacy clients.",
+      "remedy": "Normalize the candidate URL before the equality check (compare the normalized URL to ch.PullRequestURL), or only clear the title when the normalized URL actually differs from the stored URL.",
+      "verification": "Add an integration test: set a code channel PR URL and custom title, then UpdateChannel with pull_request_url = stored URL + trailing slash and no pull_request_title; assert the custom title is preserved.",
+      "evidenceRefs": [
+        "E1",
+        "E2",
+        "E4"
+      ],
+      "route": "backlog-residual-risk",
+      "lensIds": [
+        "integration-interface",
+        "regression-failure-mode"
+      ]
+    },
+    {
+      "id": "F-2",
+      "title": "OpenAPI under-specifies pull_request_url validation; server rejects valid-looking URLs with 400",
+      "severity": "low",
+      "confidence": {
+        "level": "medium",
+        "anchor": 75,
+        "rationale": "OpenAPI declares pull_request_url as an unconstrained string; NormalizePullRequestContext tests confirm the server rejects non-https, non-github.com, non-/pull/N URLs."
+      },
+      "symptom": "A client following the published OpenAPI schema may send a pull_request_url that the schema accepts (any string) but the server rejects with ErrInvalidChannelPresentation (HTTP 400), e.g. a GitLab/Gitea URL, a GitHub URL with a query string, or a GitHub issues URL.",
+      "source": "packages/protocol/openapi.yaml:1837 (UpdateChannelRequest.pull_request_url: type string, no format/pattern/maxLength) vs apps/api/internal/store/types.go:108 NormalizePullRequestContext (strict https://github.com/{owner}/{repo}/pull/{n} enforcement).",
+      "consequence": "Client surprise / HTTP 400 on otherwise schema-conformant input for the new optional field. No legacy backward-compatibility break because legacy clients omit the field.",
+      "remedy": "Add a pattern or description to the OpenAPI pull_request_url capturing the server constraint (https://github.com/{owner}/{repo}/pull/{number}, no query/fragment), or document the validation rule in the schema description.",
+      "verification": "Cross-check OpenAPI UpdateChannelRequest.pull_request_url constraints against NormalizePullRequestContext acceptance rules; send a GitLab PR URL and assert the documented contract matches the 400 behavior.",
+      "evidenceRefs": [
+        "E1",
+        "E2",
+        "E4"
+      ],
+      "route": "backlog-residual-risk",
+      "lensIds": [
+        "integration-interface"
+      ]
+    },
+    {
+      "id": "F-3",
+      "title": "Response Channel schema tightened with two new required fields (additive TS SDK type change)",
+      "severity": "info",
+      "confidence": {
+        "level": "high",
+        "anchor": 50,
+        "rationale": "OpenAPI Channel required list and SDK Channel type now include both fields; server always emits them (Go struct non-omitempty json tags), so runtime is consistent."
+      },
+      "symptom": "The Channel response schema and TS SDK Channel type now mark pull_request_url and pull_request_title as required. TS SDK consumers that construct or mock Channel objects must now supply both fields (compile-time change).",
+      "source": "packages/protocol/openapi.yaml:2048 (Channel required list) and packages/sdk-ts/src/index.ts:148 (Channel type) and packages/sdk-ts/src/generated/openapi.d.ts:1363.",
+      "consequence": "Compile-time type break for SDK consumers building Channel objects; no runtime break for JSON consumers (extra fields ignored; required fields always present as empty strings).",
+      "remedy": "Acceptable additive tightening; document the new required response fields in the changelog. No code change required because the server always serializes both fields.",
+      "verification": "Confirm store.Channel json tags are non-omitempty so both fields are present in every response, satisfying the required declaration.",
+      "evidenceRefs": [
+        "E1",
+        "E2"
+      ],
+      "route": "no-action",
+      "lensIds": [
+        "integration-interface"
+      ]
+    }
+  ],
+  "rejectedFindings": [
+    {
+      "id": "RF-1",
+      "title": "[rejected] Legacy update on a code channel drops PR context because NormalizePullRequestContext is always called",
+      "severity": "low",
+      "confidence": {
+        "level": "high",
+        "anchor": 75,
+        "rationale": "Traced and tested: when neither PR field is sent the values default to ch values; template stays code (input.Template empty -> template = ch.Template); normalize is idempotent on already-normalized stored values. ChannelPresentation test passes."
+      },
+      "symptom": "Hypothesis that any legacy update re-running NormalizePullRequestContext would mutate/clear stored PR context.",
+      "source": "apps/api/internal/store/sqlite/mutations.go:234-257 and postgres mirror.",
+      "consequence": "Not reproduced: legacy update preserves PR context.",
+      "remedy": "n/a",
+      "verification": "go test -count=1 -run 'ChannelPresentation' ./apps/api/internal/store/sqlite/ -> ok; code trace confirms preserve path.",
+      "evidenceRefs": [
+        "E1",
+        "E4"
+      ],
+      "route": "close-rejected",
+      "lensIds": [
+        "integration-interface"
+      ]
+    }
+  ],
+  "findingLedger": [
+    {
+      "id": "FL-1",
+      "findingId": "F-1",
+      "disposition": "accepted-unproven",
+      "severity": "low",
+      "route": "backlog-residual-risk",
+      "note": "Title-clear heuristic data-drop on non-canonical URL re-send; traced, not executed standalone."
+    },
+    {
+      "id": "FL-2",
+      "findingId": "F-2",
+      "disposition": "accepted-unproven",
+      "severity": "low",
+      "route": "backlog-residual-risk",
+      "note": "OpenAPI under-specifies server-side PR URL validation."
+    },
+    {
+      "id": "FL-3",
+      "findingId": "F-3",
+      "disposition": "accepted-proven",
+      "severity": "info",
+      "route": "no-action",
+      "note": "Response required-field tightening; proven by schema read and consistent non-omitempty serialization."
+    },
+    {
+      "id": "FL-4",
+      "findingId": "RF-1",
+      "disposition": "rejected",
+      "severity": "low",
+      "route": "close-rejected",
+      "note": "Legacy-update PR-drop hypothesis disproven by trace + passing test."
+    },
+    {
+      "id": "FL-CLEAN",
+      "scope": "legacy backward-compatibility surface (create without fields, update without fields, empty-URL clear, additive DB columns with NOT NULL DEFAULT '')",
+      "disposition": "accepted-proven",
+      "note": "checked legacy backward-compatibility surface; no backward-compatibility break found under reviewed scope."
+    }
+  ],
+  "lenses": [
+    {
+      "lensId": "build-contract",
+      "verdict": "PASS",
+      "notes": "Touched Go packages build (go1.26.5); NormalizePullRequestContext and ChannelPresentation persistence tests pass."
+    },
+    {
+      "lensId": "integration-interface",
+      "verdict": "PASS",
+      "notes": "JSON/OpenAPI/SQL/SDK additive and internally consistent; sqlc column+scan order matches; response required fields always emitted. Advisory: OpenAPI under-specifies PR URL validation (F-2) and response required-field tightening (F-3)."
+    },
+    {
+      "lensId": "regression-failure-mode",
+      "verdict": "WARN",
+      "notes": "No regression test for the title-clear edge case (F-1) or the OpenAPI/server validation mismatch (F-2). Existing tests cover the happy path and template-switch clear."
+    },
+    {
+      "lensId": "data-boundary-security",
+      "verdict": "PASS",
+      "notes": "PR URL is restricted to public https://github.com/{owner}/{repo}/pull/{n}; no query/fragment; no secret egress or arbitrary URL storage."
+    }
+  ],
+  "skippedLenses": [
+    {
+      "lensId": "recall-quality",
+      "reason": "Not a memory/search/context change."
+    },
+    {
+      "lensId": "design-operator-experience",
+      "reason": "Frontend UI is out of persistence-contract scope; no operator-facing UI contract reviewed."
+    },
+    {
+      "lensId": "authority-provenance",
+      "reason": "No auth, identity, memory, or cross-agent boundary change in the contract surface; PR URL is a public reference, not an authority artifact."
+    }
+  ],
+  "receiptAuthority": {
+    "independenceClass": "external-route",
+    "receiptAuthority": "provisional",
+    "spawnLineage": [
+      "operator",
+      "reflex-escalation",
+      "cross-family-reviewer:ollama/glm-5.2:cloud"
+    ],
+    "targetDigest": "sha256:ada69e2ecfaec51652ce302049ae4c181a2769dc74d15734d88f8922cb1968c3",
+    "issuerRoute": "ollama/glm-5.2:cloud (effective provider cloud; matrix-asserted provider ollama)",
+    "replayStatus": "not-attempted"
+  },
+  "activeDecisionContractsChecked": [
+    "store.Channel JSON contract",
+    "OpenAPI Channel response schema",
+    "OpenAPI UpdateChannelRequest",
+    "OpenAPI CreateChannelRequest",
+    "SQLite channels schema + migration 0028_channel_code_context.sql",
+    "Postgres channels schema + migration 0021_channel_code_context.sql",
+    "sqlc UpdateChannel/GetChannel/ListChannels/GetChannelByIDAndWorkspace/GetChannelByRouteIDAndWorkspace queries",
+    "TS SDK Channel type (packages/sdk-ts/src/index.ts, generated/openapi.d.ts)"
+  ],
+  "decisionDeltaCandidates": [
+    {
+      "id": "DDC-1",
+      "sourceFindingId": "F-3",
+      "sourceArtifact": ".hyperreview/contract-verification-2026-07-14T17-51-51Z/result.json",
+      "summary": "Channel response schema tightened with required pull_request_url/pull_request_title; downstream SDK consumers must regenerate types to satisfy the required response fields.",
+      "severity": "info",
+      "affectedDecisionRefs": [
+        "packages/protocol/openapi.yaml#Channel",
+        "packages/sdk-ts/src/index.ts#Channel",
+        "packages/sdk-ts/src/generated/openapi.d.ts#Channel"
+      ],
+      "recommendedRoute": "contract-update",
+      "status": "candidate",
+      "dispositionReason": "Additive response-contract evolution; document and regenerate downstream SDK types.",
+      "evidenceRefs": [
+        "E1",
+        "E2"
+      ]
+    }
+  ],
+  "cleanResult": {
+    "status": "has-findings",
+    "statement": "Contract is backward-compatible: legacy create/update payloads that omit pull_request_url and pull_request_title are accepted without data loss; an empty pull_request_url clears both fields; DB columns are additive NOT NULL DEFAULT ''. Three advisory findings (2 low, 1 info) recorded; none block the stage.",
+    "scopeChecked": [
+      "legacy create omits both fields -> DB defaults ''",
+      "legacy update omits both fields -> PR context preserved",
+      "empty pull_request_url clears url + title",
+      "non-code template clears PR context",
+      "additive DB columns NOT NULL DEFAULT ''"
+    ]
+  },
+  "reportQuality": {
+    "status": "passed",
+    "checks": [
+      "mode named and matches lifecycle (contract-verification)",
+      "target, target type, and scope are exact",
+      "gate mode and blocking authority explicit",
+      "evidence sources are concrete and sufficient",
+      "coverage states what was and was not reviewed",
+      "confidence stated separately from severity",
+      "required passes listed in passesRun",
+      "skipped conditional passes recorded (none skipped; finding-ledger activated)",
+      "findings use evidence-backed symptom/source/consequence/remedy/verification",
+      "rejected finding preserved with reason",
+      "clean result explicit about what was checked",
+      "verdict follows mode contract (PASS: legacy payloads accepted without data loss)",
+      "escalation provenance and parity matrix bound to tree/hash"
+    ]
+  },
+  "nextAction": "operator-review",
+  "gateMode": "blocking",
+  "blocksStage": false,
+  "activationPlan": {
+    "requestedWorkShapes": [
+      "schema-field-addition",
+      "openapi-contract-change",
+      "sql-migration",
+      "backward-compatibility"
+    ],
+    "normalizedWorkShapes": [
+      "additive-persistence-contract-field",
+      "json-openapi-sqlite-postgres-channel-pr-context"
+    ],
+    "normalizationActions": [
+      {
+        "from": "schema-field-addition",
+        "to": "additive-persistence-contract-field",
+        "reason": "two new optional/required string fields added across the channel persistence contract"
+      }
+    ],
+    "activatedPasses": [
+      {
+        "id": "changed-surface",
+        "reason": "mode required",
+        "sourceSignal": "staged diff",
+        "mandatory": true
+      },
+      {
+        "id": "contract-correctness",
+        "reason": "mode required",
+        "sourceSignal": "consumer assumptions",
+        "mandatory": true
+      },
+      {
+        "id": "test-evidence",
+        "reason": "mode required",
+        "sourceSignal": "go test/go build",
+        "mandatory": true
+      },
+      {
+        "id": "finding-ledger",
+        "reason": "conditional activated: findings exist",
+        "sourceSignal": "findings present",
+        "mandatory": false
+      },
+      {
+        "id": "judge",
+        "reason": "mode required",
+        "sourceSignal": "every review",
+        "mandatory": true
+      }
+    ],
+    "skippedConditionalPasses": [],
+    "selectedDepth": "deep",
+    "depthPromotionReason": "Operator required full-tier durable output via parent reflex escalation; conditional pass (finding-ledger) activated; cross-family escalation.",
+    "requiredEvidence": [
+      "target contract",
+      "consumer assumption",
+      "verification strategy"
+    ],
+    "codeAnalysisRequirements": {
+      "status": "not-required",
+      "artifactRefs": []
+    },
+    "requestDisposition": "continue",
+    "expectedFollowupMode": "none"
+  },
+  "executionStrategy": {
+    "strategy": "single-model",
+    "rationale": "Single cross-family reviewer pass (ollama/glm-5.2:cloud, family zai) per operator-asserted parity-matrix routing; an additive contract-verification gate does not require a council.",
+    "sources": [
+      "reviewer-parity-matrix.v0.json"
+    ],
+    "escalationTriggers": [
+      "parent-reflex-escalation",
+      "no_eligible_parity_reviewer"
+    ],
+    "preserveDisagreement": false,
+    "requiresFindingValidation": false
+  },
+  "escalation": {
+    "decision": "escalate",
+    "authorProvenance": {
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "family": "openai",
+      "effort": "high"
+    },
+    "reviewerProvenance": {
+      "provider": "ollama",
+      "model": "glm-5.2:cloud",
+      "family": "zai",
+      "effort": "max",
+      "effectiveProvider": "cloud",
+      "matrixAssertedProvider": "ollama",
+      "providerMatch": false
+    },
+    "independence": "cross-model",
+    "assuranceState": "no_eligible_parity_reviewer",
+    "assuranceRationale": "Matrix lists glm-5.2/max as an eligible reviewer for the openai/gpt-5.6-sol row, but only at thinking xhigh; the effective author effort is high, for which no parity-cleared row exists. Additionally the reachable effective endpoint is glm-5.2:cloud (provider cloud), which fails the matrix requireEffectiveProviderMatch against the asserted ollama route, so the primary route fails closed. A different family (zai) is reachable, so the state resolves to no_eligible_parity_reviewer (not single_model).",
+    "parityMatrix": {
+      "path": "/home/lumadmin/.openclaw/skills/_hyperreview-shared/contracts/reviewer-parity-matrix.v0.json",
+      "version": "0.4.0",
+      "sha256": "522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6"
+    },
+    "pinnedStagedTree": "50bf082920da2007328de9099104df0a94e4fb4e",
+    "stagedPathsSha256": "ada69e2ecfaec51652ce302049ae4c181a2769dc74d15734d88f8922cb1968c3",
+    "baseline": "HEAD 213f43ef9aee35b490a26f5051c5e39972978a01",
+    "crossFamilyPassRan": true,
+    "parityCleared": false,
+    "disposition": "advisory-but-independent; route to operator sign-off because no parity-cleared reviewer is available for openai/gpt-5.6-sol/high."
+  },
+  "contractVerification": {
+    "targetContract": "Channel persistence contract: Go store.Channel JSON serialization, OpenAPI Channel + UpdateChannelRequest + CreateChannelRequest, SQLite/Postgres channels table, sqlc channel queries, store adapters, httpapi updateChannel handler, and TS SDK Channel type.",
+    "consumerAssumption": "Legacy clients omit both pull_request_url and pull_request_title on create and update; clients may send an empty pull_request_url to clear the context.",
+    "verificationStrategy": "Construct legacy v1 payloads (create/update without the new fields) and confirm the new parser accepts them without failure or data loss; confirm empty URL clears both fields; confirm the DB schema is additive with NOT NULL DEFAULT ''; confirm the response always emits the new fields so the tightened required declaration is satisfied.",
+    "failedMockPayloads": [],
+    "droppedFields": [],
+    "backwardCompatibilityBreaks": [],
+    "legacyPayloadsAccepted": [
+      "create {\"name\":\"c\"} -> DB defaults pull_request_url='', pull_request_title=''",
+      "update {\"name\":\"renamed\"} on code channel with PR set -> PR context preserved (input fields nil)",
+      "update {\"pull_request_url\":\"\"} -> clears url and title via NormalizePullRequestContext('', '')",
+      "update {\"template\":\"chat\"} on code channel -> PR context cleared (non-code template)"
+    ]
+  },
+  "reviewableChurn": {
+    "totalFiles": 42,
+    "totalInsertions": 733,
+    "totalDeletions": 319,
+    "excluded": {
+      "webassetsBuiltFiles": 12,
+      "webassetsInsertions": 90,
+      "webassetsDeletions": 90,
+      "sdkGeneratedFiles": 1,
+      "sdkGeneratedInsertions": 8
+    },
+    "reviewableFiles": 29,
+    "reviewableInsertions": 635,
+    "reviewableDeletions": 229,
+    "note": "Reviewable churn excludes built webassets and generated SDK type declarations. Contract-scope hand-authored surface is smaller; frontend/e2e are out of contract scope."
+  },
+  "testsOrCommands": [
+    {
+      "cmd": "go build ./apps/api/internal/store/... ./apps/api/internal/store/postgres/ ./apps/api/internal/httpapi/",
+      "exit": 0,
+      "tool": "go1.26.5"
+    },
+    {
+      "cmd": "go test -count=1 -run 'NormalizePullRequest|ChannelPresentation' ./apps/api/internal/store/ ./apps/api/internal/store/sqlite/",
+      "exit": 0,
+      "output": "ok github.com/openclaw/clickclack/apps/api/internal/store 0.002s\\nok github.com/openclaw/clickclack/apps/api/internal/store/sqlite 0.082s"
+    }
+  ]
+}

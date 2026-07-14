@@ -21,11 +21,13 @@ func (s *Server) updateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		Name     string `json:"name"`
-		Kind     string `json:"kind"`
-		Template string `json:"template"`
-		CodeMode string `json:"code_mode"`
-		Archived *bool  `json:"archived"`
+		Name             string  `json:"name"`
+		Kind             string  `json:"kind"`
+		Template         string  `json:"template"`
+		CodeMode         string  `json:"code_mode"`
+		PullRequestURL   *string `json:"pull_request_url"`
+		PullRequestTitle *string `json:"pull_request_title"`
+		Archived         *bool   `json:"archived"`
 	}
 	if err := readJSON(w, r, &body); err != nil {
 		writeError(w, http.StatusBadRequest, err)
@@ -35,13 +37,15 @@ func (s *Server) updateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	channel, event, err := s.store.UpdateChannel(r.Context(), store.UpdateChannelInput{
-		ChannelID: chi.URLParam(r, "channel_id"),
-		UserID:    act.user.ID,
-		Name:      body.Name,
-		Kind:      body.Kind,
-		Template:  body.Template,
-		CodeMode:  body.CodeMode,
-		Archived:  body.Archived,
+		ChannelID:        chi.URLParam(r, "channel_id"),
+		UserID:           act.user.ID,
+		Name:             body.Name,
+		Kind:             body.Kind,
+		Template:         body.Template,
+		CodeMode:         body.CodeMode,
+		PullRequestURL:   body.PullRequestURL,
+		PullRequestTitle: body.PullRequestTitle,
+		Archived:         body.Archived,
 	})
 	if err == nil {
 		s.publishEvent(r.Context(), event)

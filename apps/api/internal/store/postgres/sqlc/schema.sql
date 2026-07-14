@@ -66,6 +66,8 @@ CREATE TABLE channels (
   kind TEXT NOT NULL,
   template TEXT NOT NULL DEFAULT 'chat' CHECK (template IN ('chat', 'code')),
   code_mode TEXT NOT NULL DEFAULT 'single_user' CHECK (code_mode IN ('single_user', 'multi_user')),
+  pull_request_url TEXT NOT NULL DEFAULT '',
+  pull_request_title TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   archived_at TEXT,
   route_id TEXT,

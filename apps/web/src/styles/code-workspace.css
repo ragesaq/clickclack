@@ -173,6 +173,72 @@
   margin: 0;
 }
 
+.code-pr-link {
+  display: grid;
+  gap: 3px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.code-pr-link strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-pr-link:hover strong {
+  color: var(--accent);
+}
+
+.code-pr-link:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.code-agent-list {
+  display: grid;
+  gap: 8px;
+}
+
+.code-agent-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.code-agent-avatar {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.code-agent-row > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.code-agent-row strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .code-workspace-panels h3 {
   color: var(--text-strong);
   font-size: 12px;

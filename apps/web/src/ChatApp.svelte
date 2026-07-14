@@ -75,6 +75,7 @@
   let selectedThreadState: ThreadState | null = null;
   let selectedProfile: User | null = null;
   let moderationMembers: MemberModeration[] = [];
+  let workspacePeople: User[] = [];
   let slashCommands: SlashCommand[] = [];
   let mentionPeople: User[] = [];
   let selectedImage: { url: string; title: string } | null = null;
@@ -240,6 +241,11 @@
   );
   $: recentPeople = collectRecentPeople(messages, directConversations, user?.id || "");
   $: mentionPeople = collectMentionPeople(user, recentPeople, moderationMembers, selectedDirect);
+  $: codeRoomAgents = workspacePeople.filter(
+    (person) =>
+      person.kind === "bot" &&
+      (selectedChannel?.code_mode === "multi_user" || person.owner_user_id === user?.id),
+  );
   $: if (replyContext === "channel" && replyTarget && !messages.some((m) => m.id === replyTarget?.id)) clearReplyTarget();
   $: if (replyContext === "dm" && replyTarget && !messages.some((m) => m.id === replyTarget?.id)) clearReplyTarget();
   $: if (replyContext === "thread" && replyTarget && selectedThread && replyTarget.id !== selectedThread.id && !replies.some((r) => r.id === replyTarget?.id)) clearReplyTarget();
@@ -626,7 +632,7 @@
     if (workspaceChanged || channels.length === 0) await loadChannels(false, false);
     if (serial !== routeApplySerial) return;
     if (workspaceChanged || directConversations.length === 0) await loadDirectConversations();
-    if (workspaceChanged) await Promise.all([loadModerationMembers(), loadSlashCommands()]);
+    if (workspaceChanged) await Promise.all([loadWorkspacePeople(), loadModerationMembers(), loadSlashCommands()]);
     if (serial !== routeApplySerial) return;
 
     if (routeTarget) {
@@ -819,6 +825,19 @@
       moderationMembers = data.members;
     } catch {
       moderationMembers = [];
+    }
+  }
+
+  async function loadWorkspacePeople() {
+    workspacePeople = [];
+    if (!selectedWorkspaceID) return;
+    try {
+      const data = await api<{
+        members: Array<{ user: User }>;
+      }>(`/api/workspaces/${selectedWorkspaceID}/members?limit=200`);
+      workspacePeople = data.members.map((member) => member.user);
+    } catch {
+      workspacePeople = [];
     }
   }
 
@@ -3071,11 +3090,12 @@
       </div>
       {#if selectedChannel?.template === "code"}
         <CodeWorkspaceRail
-        canManage={canManageChannel}
-        agentActive={agentResponding}
-        updating={codeModeUpdating}
-        error={codeModeError}
-        onMode={(mode) => void updateCodeMode(mode)}
+          canManage={canManageChannel}
+          agentActive={agentResponding}
+          updating={codeModeUpdating}
+          error={codeModeError}
+          agents={codeRoomAgents}
+          onMode={(mode) => void updateCodeMode(mode)}
           channel={selectedChannel}
         />
       {/if}

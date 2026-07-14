@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"errors"
+	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -101,6 +103,37 @@ func ValidateChannelPresentation(template, codeMode string) error {
 		return ErrInvalidChannelPresentation
 	}
 	return nil
+}
+
+// NormalizePullRequestContext validates and labels the primary GitHub pull
+// request attached to a code channel. Empty URLs clear the complete context.
+func NormalizePullRequestContext(rawURL, rawTitle string) (string, string, error) {
+	rawURL = strings.TrimSpace(rawURL)
+	rawTitle = strings.TrimSpace(rawTitle)
+	if rawURL == "" {
+		if rawTitle != "" {
+			return "", "", ErrInvalidChannelPresentation
+		}
+		return "", "", nil
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Scheme != "https" || !strings.EqualFold(parsed.Host, "github.com") || parsed.RawQuery != "" || parsed.Fragment != "" {
+		return "", "", ErrInvalidChannelPresentation
+	}
+	segments := strings.Split(strings.Trim(parsed.Path, "/"), "/")
+	if len(segments) != 4 || segments[0] == "" || segments[1] == "" || segments[2] != "pull" {
+		return "", "", ErrInvalidChannelPresentation
+	}
+	if number, err := strconv.Atoi(segments[3]); err != nil || number < 1 {
+		return "", "", ErrInvalidChannelPresentation
+	}
+	if len(rawTitle) > 160 {
+		return "", "", ErrInvalidChannelPresentation
+	}
+	if rawTitle == "" {
+		rawTitle = segments[0] + "/" + segments[1] + " #" + segments[3]
+	}
+	return "https://github.com/" + strings.Join(segments, "/"), rawTitle, nil
 }
 
 // ErrTurnIDNotAllowed is returned when an ordinary ('message') row is created
@@ -220,18 +253,20 @@ type Workspace struct {
 }
 
 type Channel struct {
-	ID          string  `json:"id"`
-	RouteID     string  `json:"route_id"`
-	WorkspaceID string  `json:"workspace_id"`
-	Name        string  `json:"name"`
-	Kind        string  `json:"kind"`
-	Template    string  `json:"template"`
-	CodeMode    string  `json:"code_mode"`
-	CreatedAt   string  `json:"created_at"`
-	ArchivedAt  *string `json:"archived_at,omitempty"`
-	LastSeq     int64   `json:"last_seq"`
-	LastReadSeq int64   `json:"last_read_seq"`
-	UnreadCount int64   `json:"unread_count"`
+	ID               string  `json:"id"`
+	RouteID          string  `json:"route_id"`
+	WorkspaceID      string  `json:"workspace_id"`
+	Name             string  `json:"name"`
+	Kind             string  `json:"kind"`
+	Template         string  `json:"template"`
+	CodeMode         string  `json:"code_mode"`
+	PullRequestURL   string  `json:"pull_request_url"`
+	PullRequestTitle string  `json:"pull_request_title"`
+	CreatedAt        string  `json:"created_at"`
+	ArchivedAt       *string `json:"archived_at,omitempty"`
+	LastSeq          int64   `json:"last_seq"`
+	LastReadSeq      int64   `json:"last_read_seq"`
+	UnreadCount      int64   `json:"unread_count"`
 }
 
 type Message struct {
@@ -582,13 +617,15 @@ type CreateChannelInput struct {
 }
 
 type UpdateChannelInput struct {
-	ChannelID string
-	UserID    string
-	Name      string
-	Kind      string
-	Template  string
-	CodeMode  string
-	Archived  *bool
+	ChannelID        string
+	UserID           string
+	Name             string
+	Kind             string
+	Template         string
+	CodeMode         string
+	PullRequestURL   *string
+	PullRequestTitle *string
+	Archived         *bool
 }
 
 type CreateMessageInput struct {

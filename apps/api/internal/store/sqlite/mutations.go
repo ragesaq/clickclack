@@ -234,6 +234,31 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 	if err := store.ValidateChannelPresentation(template, codeMode); err != nil {
 		return store.Channel{}, store.Event{}, err
 	}
+	pullRequestURL := ch.PullRequestURL
+	pullRequestTitle := ch.PullRequestTitle
+	if input.PullRequestURL != nil {
+		pullRequestURL = strings.TrimSpace(*input.PullRequestURL)
+		if pullRequestURL != "" {
+			pullRequestURL, _, err = store.NormalizePullRequestContext(pullRequestURL, "")
+			if err != nil {
+				return store.Channel{}, store.Event{}, err
+			}
+		}
+		if input.PullRequestTitle == nil && pullRequestURL != ch.PullRequestURL {
+			pullRequestTitle = ""
+		}
+	}
+	if input.PullRequestTitle != nil {
+		pullRequestTitle = *input.PullRequestTitle
+	}
+	if template != store.ChannelTemplateCode {
+		pullRequestURL = ""
+		pullRequestTitle = ""
+	}
+	pullRequestURL, pullRequestTitle, err = store.NormalizePullRequestContext(pullRequestURL, pullRequestTitle)
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
 	archivedValue := ch.ArchivedAt
 	if input.Archived != nil {
 		archivedValue = nil
@@ -243,12 +268,14 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 		}
 	}
 	if err := qtx.UpdateChannel(ctx, storedb.UpdateChannelParams{
-		Name:       name,
-		Kind:       kind,
-		Template:   template,
-		CodeMode:   codeMode,
-		ArchivedAt: nullFromPtr(archivedValue),
-		ID:         ch.ID,
+		Name:             name,
+		Kind:             kind,
+		Template:         template,
+		CodeMode:         codeMode,
+		PullRequestUrl:   pullRequestURL,
+		PullRequestTitle: pullRequestTitle,
+		ArchivedAt:       nullFromPtr(archivedValue),
+		ID:               ch.ID,
 	}); err != nil {
 		return store.Channel{}, store.Event{}, err
 	}
@@ -260,6 +287,8 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 	ch.Kind = kind
 	ch.Template = template
 	ch.CodeMode = codeMode
+	ch.PullRequestURL = pullRequestURL
+	ch.PullRequestTitle = pullRequestTitle
 	ch.ArchivedAt = archivedValue
 	return ch, event, tx.Commit()
 }

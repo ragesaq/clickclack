@@ -12,7 +12,7 @@ test("code channels switch between single-user and multi-user rooms durably", as
   });
   expect(workspaceResponse.ok()).toBe(true);
   const { workspace: isolatedWorkspace } = (await workspaceResponse.json()) as {
-    workspace: { route_id: string };
+    workspace: { id: string; route_id: string };
   };
   await page.goto(`/app/${isolatedWorkspace.route_id}`);
   await waitForAppReady(page);
@@ -64,12 +64,38 @@ test("code channels switch between single-user and multi-user rooms durably", as
   };
   expect(updateBody.channel).toMatchObject({ template: "code", code_mode: "single_user" });
 
+  const meResponse = await page.request.get("/api/me");
+  expect(meResponse.ok()).toBe(true);
+  const { user: currentUser } = (await meResponse.json()) as { user: { id: string } };
+  const botResponse = await page.request.post(`/api/workspaces/${isolatedWorkspace.id}/bots`, {
+    data: {
+      owner_user_id: currentUser.id,
+      display_name: "Chisel",
+      handle: `chisel-${suffix}`,
+      token_name: "code-room-e2e",
+      scopes: ["bot:write"],
+    },
+  });
+  expect(botResponse.ok()).toBe(true);
+  const pullRequestResponse = await page.request.patch(`/api/channels/${createBody.channel.id}`, {
+    data: {
+      pull_request_url: "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1",
+      pull_request_title: "ClickClack for Codex",
+    },
+  });
+  expect(pullRequestResponse.ok()).toBe(true);
+
   await page.reload();
   await waitForAppReady(page);
   await expect(page.getByRole("heading", { name: "Personal agent room" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Single user" })).toHaveAttribute(
     "aria-pressed",
     "true",
+  );
+  await expect(workspace.getByText("Chisel", { exact: true })).toBeVisible();
+  await expect(workspace.getByRole("link", { name: "Open ClickClack for Codex" })).toHaveAttribute(
+    "href",
+    "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1",
   );
 
   for (const viewport of [

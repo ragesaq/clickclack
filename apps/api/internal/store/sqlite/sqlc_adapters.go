@@ -161,32 +161,36 @@ func storeUploadFromGetUploadByOwnerNonce(row storedb.GetUploadByOwnerNonceRow) 
 
 func storeChannelFromGetChannel(row storedb.GetChannelRow) store.Channel {
 	return store.Channel{
-		ID:          row.ID,
-		RouteID:     row.RouteID,
-		WorkspaceID: row.WorkspaceID,
-		Name:        row.Name,
-		Kind:        row.Kind,
-		Template:    row.Template,
-		CodeMode:    row.CodeMode,
-		CreatedAt:   row.CreatedAt,
-		ArchivedAt:  ptrFromNull(row.ArchivedAt),
+		ID:               row.ID,
+		RouteID:          row.RouteID,
+		WorkspaceID:      row.WorkspaceID,
+		Name:             row.Name,
+		Kind:             row.Kind,
+		Template:         row.Template,
+		CodeMode:         row.CodeMode,
+		PullRequestURL:   row.PullRequestUrl,
+		PullRequestTitle: row.PullRequestTitle,
+		CreatedAt:        row.CreatedAt,
+		ArchivedAt:       ptrFromNull(row.ArchivedAt),
 	}
 }
 
 func storeChannelFromListChannels(row storedb.ListChannelsRow) store.Channel {
 	return store.Channel{
-		ID:          row.ID,
-		RouteID:     row.RouteID,
-		WorkspaceID: row.WorkspaceID,
-		Name:        row.Name,
-		Kind:        row.Kind,
-		Template:    row.Template,
-		CodeMode:    row.CodeMode,
-		CreatedAt:   row.CreatedAt,
-		ArchivedAt:  ptrFromNull(row.ArchivedAt),
-		LastSeq:     row.LastSeq,
-		LastReadSeq: row.LastReadSeq,
-		UnreadCount: row.UnreadCount,
+		ID:               row.ID,
+		RouteID:          row.RouteID,
+		WorkspaceID:      row.WorkspaceID,
+		Name:             row.Name,
+		Kind:             row.Kind,
+		Template:         row.Template,
+		CodeMode:         row.CodeMode,
+		PullRequestURL:   row.PullRequestUrl,
+		PullRequestTitle: row.PullRequestTitle,
+		CreatedAt:        row.CreatedAt,
+		ArchivedAt:       ptrFromNull(row.ArchivedAt),
+		LastSeq:          row.LastSeq,
+		LastReadSeq:      row.LastReadSeq,
+		UnreadCount:      row.UnreadCount,
 	}
 }
 

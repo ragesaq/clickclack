@@ -68,12 +68,45 @@ func TestChannelPresentationPersistsAndOwnerCanChangeMode(t *testing.T) {
 	if updated.CodeMode != store.ChannelCodeModeSingleUser || updated.Template != store.ChannelTemplateCode || event.Type != "channel.updated" {
 		t.Fatalf("unexpected updated channel: %#v %#v", updated, event)
 	}
+	pullRequestURL := "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1"
+	pullRequestTitle := "ClickClack for Codex"
+	updated, _, err = st.UpdateChannel(ctx, store.UpdateChannelInput{
+		ChannelID:        created.ID,
+		UserID:           owner.ID,
+		PullRequestURL:   &pullRequestURL,
+		PullRequestTitle: &pullRequestTitle,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.PullRequestURL != pullRequestURL || updated.PullRequestTitle != pullRequestTitle {
+		t.Fatalf("pull request context did not update: %#v", updated)
+	}
+	nonCanonicalPullRequestURL := pullRequestURL + "/"
+	updated, _, err = st.UpdateChannel(ctx, store.UpdateChannelInput{
+		ChannelID:      created.ID,
+		UserID:         owner.ID,
+		PullRequestURL: &nonCanonicalPullRequestURL,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.PullRequestURL != pullRequestURL || updated.PullRequestTitle != pullRequestTitle {
+		t.Fatalf("equivalent pull request URL reset context: %#v", updated)
+	}
 	persisted, err := st.GetChannel(ctx, created.ID, owner.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if persisted.CodeMode != store.ChannelCodeModeSingleUser || persisted.Template != store.ChannelTemplateCode {
+	if persisted.CodeMode != store.ChannelCodeModeSingleUser || persisted.Template != store.ChannelTemplateCode || persisted.PullRequestURL != pullRequestURL {
 		t.Fatalf("presentation did not persist: %#v", persisted)
+	}
+	updated, _, err = st.UpdateChannel(ctx, store.UpdateChannelInput{ChannelID: created.ID, UserID: owner.ID, Template: store.ChannelTemplateChat})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.PullRequestURL != "" || updated.PullRequestTitle != "" {
+		t.Fatalf("chat template retained code context: %#v", updated)
 	}
 
 	if _, _, err := st.CreateChannel(ctx, store.CreateChannelInput{WorkspaceID: workspace.ID, UserID: owner.ID, Name: "invalid", Template: "dashboard"}); !errors.Is(err, store.ErrInvalidChannelPresentation) {

@@ -353,7 +353,7 @@ INSERT INTO channels (id, route_id, workspace_id, name, kind, template, code_mod
 VALUES (sqlc.arg(id), sqlc.arg(route_id), sqlc.arg(workspace_id), sqlc.arg(name), sqlc.arg(kind), sqlc.arg(template), sqlc.arg(code_mode), sqlc.arg(created_at));
 
 -- name: ListChannels :many
-SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.created_at, c.archived_at,
+SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.pull_request_url, c.pull_request_title, c.created_at, c.archived_at,
        CAST(COALESCE((SELECT MAX(channel_seq) FROM messages WHERE channel_id = c.id AND parent_message_id IS NULL), 0) AS BIGINT) AS last_seq,
        CAST(COALESCE((SELECT cr.last_read_seq FROM channel_reads cr WHERE cr.channel_id = c.id AND cr.user_id = sqlc.arg(reader_user_id)), 0) AS BIGINT) AS last_read_seq,
        CAST(COALESCE((
@@ -905,18 +905,18 @@ INSERT INTO messages (id, workspace_id, channel_id, direct_conversation_id, auth
 VALUES (sqlc.arg(id), sqlc.arg(workspace_id), sqlc.arg(channel_id), sqlc.arg(direct_conversation_id), sqlc.arg(author_id), sqlc.arg(parent_message_id), sqlc.arg(thread_root_id), NULL, sqlc.arg(thread_seq), sqlc.arg(body), 'markdown', sqlc.arg(created_at), sqlc.arg(quoted_message_id), sqlc.arg(quoted_body_snapshot), sqlc.arg(quoted_author_id), sqlc.arg(client_nonce));
 
 -- name: GetChannel :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE id = sqlc.arg(id);
 
 -- name: GetChannelByIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE workspace_id = sqlc.arg(workspace_id)
   AND id = sqlc.arg(id);
 
 -- name: GetChannelByRouteIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE workspace_id = sqlc.arg(workspace_id)
   AND route_id = sqlc.arg(route_id);
@@ -960,6 +960,8 @@ SET name = sqlc.arg(name),
     kind = sqlc.arg(kind),
     template = sqlc.arg(template),
     code_mode = sqlc.arg(code_mode),
+    pull_request_url = sqlc.arg(pull_request_url),
+    pull_request_title = sqlc.arg(pull_request_title),
     archived_at = sqlc.arg(archived_at)
 WHERE id = sqlc.arg(id);
 

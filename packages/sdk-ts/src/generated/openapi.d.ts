@@ -1227,6 +1227,13 @@ export interface components {
       template?: "chat" | "code";
       /** @enum {string} */
       code_mode?: "single_user" | "multi_user";
+      /**
+       * Format: uri-reference
+       * @description Canonical HTTPS github.com pull request URL for this code channel. Send an empty string to clear it.
+       */
+      pull_request_url?: string;
+      /** @description Human-readable title for the primary pull request. Defaults to owner/repo */
+      pull_request_title?: string;
       archived?: boolean;
     };
     CreateMessageRequest: {
@@ -1359,6 +1366,10 @@ export interface components {
       template: "chat" | "code";
       /** @enum {string} */
       code_mode: "single_user" | "multi_user";
+      /** @description Primary GitHub pull request for this code channel, or an empty string when none is linked. */
+      pull_request_url: string;
+      /** @description Human-readable title for the primary pull request, or an empty string when none is linked. */
+      pull_request_title: string;
       /** Format: date-time */
       created_at: string;
       /** Format: date-time */

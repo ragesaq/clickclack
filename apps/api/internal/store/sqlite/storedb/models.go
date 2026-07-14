@@ -57,15 +57,17 @@ type BotToken struct {
 }
 
 type Channel struct {
-	ID          string         `json:"id"`
-	WorkspaceID string         `json:"workspace_id"`
-	Name        string         `json:"name"`
-	Kind        string         `json:"kind"`
-	Template    string         `json:"template"`
-	CodeMode    string         `json:"code_mode"`
-	CreatedAt   string         `json:"created_at"`
-	ArchivedAt  sql.NullString `json:"archived_at"`
-	RouteID     sql.NullString `json:"route_id"`
+	ID               string         `json:"id"`
+	WorkspaceID      string         `json:"workspace_id"`
+	Name             string         `json:"name"`
+	Kind             string         `json:"kind"`
+	Template         string         `json:"template"`
+	CodeMode         string         `json:"code_mode"`
+	PullRequestUrl   string         `json:"pull_request_url"`
+	PullRequestTitle string         `json:"pull_request_title"`
+	CreatedAt        string         `json:"created_at"`
+	ArchivedAt       sql.NullString `json:"archived_at"`
+	RouteID          sql.NullString `json:"route_id"`
 }
 
 type ChannelRead struct {

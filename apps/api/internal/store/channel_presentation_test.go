@@ -40,3 +40,28 @@ func TestNormalizeChannelPresentation(t *testing.T) {
 		t.Fatalf("expected multi-user chat channel to be rejected, got %v", err)
 	}
 }
+
+func TestNormalizePullRequestContext(t *testing.T) {
+	t.Parallel()
+
+	url, title, err := NormalizePullRequestContext("https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if url != "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1" || title != "PsiClawOps/clickclack-codex-plugin #1" {
+		t.Fatalf("unexpected normalized pull request: %q %q", url, title)
+	}
+	for _, invalid := range []string{
+		"http://github.com/openclaw/clickclack/pull/1",
+		"https://example.com/openclaw/clickclack/pull/1",
+		"https://github.com/openclaw/clickclack/issues/1",
+		"https://github.com/openclaw/clickclack/pull/nope",
+	} {
+		if _, _, err := NormalizePullRequestContext(invalid, ""); !errors.Is(err, ErrInvalidChannelPresentation) {
+			t.Fatalf("expected %q to be rejected, got %v", invalid, err)
+		}
+	}
+	if _, _, err := NormalizePullRequestContext("", "orphaned title"); !errors.Is(err, ErrInvalidChannelPresentation) {
+		t.Fatalf("expected title without URL to be rejected, got %v", err)
+	}
+}

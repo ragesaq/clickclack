@@ -32,6 +32,8 @@ export type Channel = {
   kind: string;
   template: "chat" | "code";
   code_mode: "single_user" | "multi_user";
+  pull_request_url: string;
+  pull_request_title: string;
   created_at: string;
   archived_at?: string;
   last_seq?: number;
