@@ -75,7 +75,7 @@ test("code channels switch between single-user and multi-user rooms durably", as
     data: {
       owner_user_id: currentUser.id,
       display_name: "Chisel",
-      handle: `chisel-${suffix}`,
+      handle: "chisel-stock",
       token_name: "code-room-e2e",
       scopes: ["bot:write"],
     },
@@ -136,11 +136,15 @@ test("code channels switch between single-user and multi-user rooms durably", as
   const identityRow = workspace.locator(".code-agent-row");
   await expect(identityRow).toHaveCount(1);
   await expect(identityRow.locator(".code-agent-line-primary")).toHaveText(
-    `Chisel / @chisel-${suffix} · OpenClaw Agent`,
+    "Chisel / @chisel-stock · OpenClaw Agent",
   );
   await expect(identityRow.locator(".code-agent-line-meta")).toHaveText(
     `owner ${currentUser.display_name} · model: openai/GPT-5.6-sol · high`,
   );
+  const lineWidths = await identityRow.locator(".code-agent-line").evaluateAll((lines) =>
+    lines.map((line) => ({ clientWidth: line.clientWidth, scrollWidth: line.scrollWidth })),
+  );
+  expect(lineWidths.every(({ clientWidth, scrollWidth }) => scrollWidth <= clientWidth)).toBe(true);
   await expect(workspace.getByRole("link", { name: "Open ClickClack for Codex" })).toHaveAttribute(
     "href",
     "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1",
