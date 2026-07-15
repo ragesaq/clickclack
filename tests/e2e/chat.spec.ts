@@ -575,6 +575,21 @@ test("coalesces durable agent activity and applies activity preferences", async 
   });
   expect(fillerResponse.ok()).toBe(true);
   await expect(page.getByText("Scrollable history line 48.")).toBeVisible();
+  const standaloneAgentBubble = page.locator(".message-row:not(.after-preamble)", {
+    has: page.getByText("Scrollable history line 48."),
+  });
+  await expect(standaloneAgentBubble).toHaveCount(1);
+  const standaloneStyle = await standaloneAgentBubble.locator(".message-content").evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      borderTop: parseFloat(style.borderTopWidth),
+      radius: parseFloat(style.borderTopLeftRadius),
+      background: style.backgroundColor,
+    };
+  });
+  expect(standaloneStyle.borderTop).toBeGreaterThan(0);
+  expect(standaloneStyle.radius).toBeGreaterThan(0);
+  expect(standaloneStyle.background).not.toBe("rgba(0, 0, 0, 0)");
   await expectScrollAtMessageEnd(page);
 
   const liveTurnId = `live-turn-${Date.now()}`;

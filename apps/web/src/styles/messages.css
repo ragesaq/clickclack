@@ -732,12 +732,12 @@
   margin-top: 2px;
 }
 
-/* The answer keeps its full indigo delivery bubble: wash, a full hairline
-   border on all four sides, fully rounded corners, padding, and the keycap
-   under-edge. Only the fused-seam treatment is gone (no border-top:0, no
-   half-rounded card shared with the amber preamble); the preamble and the
-   answer are two separate bubbles, never one card. */
-.message-row.after-preamble .message-content {
+/* Every ordinary agent response keeps the full indigo delivery-bubble type,
+   even when an intervening durable row means it is not adjacent to a preamble.
+   The wash, complete hairline border, fully rounded corners, padding, and
+   keycap under-edge preserve visual continuity without fusing activity and
+   response into one card. */
+.message-group.is-agent .message-row:not(.is-preamble) .message-content {
   padding: 10px 14px;
   border: 1px solid color-mix(in srgb, var(--delivery-accent) 20%, transparent);
   border-radius: var(--radius-lg);
