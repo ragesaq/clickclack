@@ -79,7 +79,12 @@
   }
 
   function ownerName(agent: User): string {
-    if (!agent.owner_user_id) return "Workspace-owned";
+    // Owner-scoped bots resolve to their explicit owner. Workspace-owned bots
+    // (no owner_user_id) are intentionally not attributed to any individual and
+    // read as "Workspace-owned".
+    if (!agent.owner_user_id) {
+      return "Workspace-owned";
+    }
     const owner = people.find((person) => person.id === agent.owner_user_id);
     return owner?.display_name || owner?.handle || "Owner unavailable";
   }

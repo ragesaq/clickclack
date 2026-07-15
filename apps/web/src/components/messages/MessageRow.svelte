@@ -60,16 +60,16 @@
   // Coalesced agent activity: consecutive same-turn agent_commentary/agent_tool
   // rows are collapsed (client-side) into one synthetic row carrying a
   // preamble_block. When present, the row renders as a single preamble block
-  // (incrementing commentary + compact tool sub-items, expanded by default
-  // for both live and completed turns) instead of the final-answer treatment.
+  // (incrementing commentary + compact tool sub-items, open while live and
+  // auto-collapsed on completion) instead of the final-answer treatment.
   let preambleBlock = $derived(message.preamble_block);
   // Preamble/answer separation. Within an agent message group the synthetic
   // preamble row is immediately followed by the same author's final answer
   // (coalesceAgentActivity anchors the block at the turn, ordinary messages
   // pass through), so within-group adjacency identifies the answer that follows
-  // a preamble. That answer is a normal chat bubble; .after-preamble only adds a
-  // top margin so it sits as a distinct unit below the amber preamble card,
-  // never fused into it.
+  // a preamble. That answer keeps its own full delivery bubble; .after-preamble
+  // adds a top margin plus the indigo bubble styling so it sits as a distinct
+  // unit below the amber preamble card, never fused into it.
   let followsPreamble = $derived(Boolean(previousMessage?.preamble_block) && !preambleBlock);
   let threadReplyCount = $derived(message.thread_state?.reply_count || 0);
   let hasThreadReplies = $derived(threadReplyCount > 0);

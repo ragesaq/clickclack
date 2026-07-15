@@ -535,6 +535,33 @@ test("coalesces durable agent activity and applies activity preferences", async 
   await preamble.getByRole("button", { name: /bash/ }).click();
   await expect(preamble.getByText("validated local target")).toBeVisible();
 
+  // The final answer following a preamble is its own self-contained delivery
+  // bubble, never fused into the amber preamble card: a full border on all four
+  // sides (top AND bottom, so no flat seam), fully rounded corners (top AND
+  // bottom radius), padding, and a wash background.
+  const answerRow = page.locator(".message-row.after-preamble", {
+    has: page.getByText("Deployment boundary is healthy."),
+  });
+  await expect(answerRow).toHaveCount(1);
+  const bubbleStyle = await answerRow.locator(".message-content").evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      borderTop: parseFloat(style.borderTopWidth),
+      borderBottom: parseFloat(style.borderBottomWidth),
+      topLeftRadius: parseFloat(style.borderTopLeftRadius),
+      bottomLeftRadius: parseFloat(style.borderBottomLeftRadius),
+      paddingTop: parseFloat(style.paddingTop),
+      background: style.backgroundColor,
+    };
+  });
+  expect(bubbleStyle.borderTop).toBeGreaterThan(0);
+  expect(bubbleStyle.borderBottom).toBeGreaterThan(0);
+  expect(bubbleStyle.topLeftRadius).toBeGreaterThan(0);
+  expect(bubbleStyle.bottomLeftRadius).toBeGreaterThan(0);
+  expect(bubbleStyle.paddingTop).toBeGreaterThan(0);
+  expect(bubbleStyle.background).not.toBe("rgba(0, 0, 0, 0)");
+  expect(bubbleStyle.background).not.toBe("transparent");
+
   // A live turn is one synthetic row anchored at its first activity message.
   // Later same-turn rows grow that existing virtual item without changing the
   // list length. Keep the timeline pinned through those resizes.

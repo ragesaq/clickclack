@@ -140,7 +140,7 @@ func TestChannelPresentationPersistsAndOwnerCanChangeMode(t *testing.T) {
 		BotUserID:   bot.ID,
 		ActorUserID: bot.ID,
 		Harness:     "OpenClaw",
-		Model:       "GPT-5.6-Sol",
+		Model:       "openai/GPT-5.6-sol",
 		Thinking:    "high",
 	})
 	if err != nil {

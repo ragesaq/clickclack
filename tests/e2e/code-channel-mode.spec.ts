@@ -90,7 +90,7 @@ test("code channels switch between single-user and multi-user rooms durably", as
   const runtimeProfileResponse = await page.request.patch(
     `/api/workspaces/${isolatedWorkspace.id}/bots/${bot.id}/runtime-profile`,
     {
-      data: { harness: "OpenClaw", model: "GPT-5.6-Sol", thinking: "high" },
+      data: { harness: "OpenClaw", model: "openai/GPT-5.6-sol", thinking: "high" },
     },
   );
   expect(runtimeProfileResponse.ok()).toBe(true);
@@ -130,11 +130,17 @@ test("code channels switch between single-user and multi-user rooms durably", as
     "aria-pressed",
     "true",
   );
-  await expect(workspace.getByText("Chisel", { exact: true })).toBeVisible();
-  await expect(workspace.getByText("OpenClaw", { exact: true })).toBeVisible();
-  await expect(workspace.getByText("GPT-5.6-Sol", { exact: true })).toBeVisible();
-  await expect(workspace.getByText("high", { exact: true })).toBeVisible();
-  await expect(workspace.getByText(currentUser.display_name, { exact: true })).toBeVisible();
+  // Compact two-line identity strip: line 1 = name / @handle · kind,
+  // line 2 = owner · provider-qualified model · thinking. Assert the exact
+  // composed content of each line rather than stray standalone text nodes.
+  const identityRow = workspace.locator(".code-agent-row");
+  await expect(identityRow).toHaveCount(1);
+  await expect(identityRow.locator(".code-agent-line-primary")).toHaveText(
+    `Chisel / @chisel-${suffix} · OpenClaw Agent`,
+  );
+  await expect(identityRow.locator(".code-agent-line-meta")).toHaveText(
+    `owner ${currentUser.display_name} · model: openai/GPT-5.6-sol · high`,
+  );
   await expect(workspace.getByRole("link", { name: "Open ClickClack for Codex" })).toHaveAttribute(
     "href",
     "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1",

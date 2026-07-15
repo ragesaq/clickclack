@@ -689,12 +689,11 @@
 
 /* Coalesced agent preamble block: one block per agent turn, interleaving
    commentary prose with individually collapsed tool-call rows in arrival
-   order. The block stays open when the final answer lands so completed turns
-   preserve the same visible work log as OpenClaw WebChat. Theme-tied to
-   --activity-accent (amber on
-   both themes); the wash is deliberately faint so the block reads as
-   secondary to the final answer, which renders as a clearly separate ordinary
-   message below it.
+   order. The block stays open while work is active, then auto-collapses when
+   the final answer lands while remaining manually expandable. Theme-tied to
+   --activity-accent (amber on both themes); the wash is deliberately faint so
+   the block reads as secondary to the final answer, which renders as a clearly
+   separate ordinary message below it.
 
    Bubble language: tinted keycaps. Each bubble is a full hairline border in
    its accent mix plus a hard tinted under-edge (the keycap shadow) — no
@@ -725,12 +724,25 @@
   box-shadow: 0 2px 0 color-mix(in srgb, var(--activity-accent) 14%, transparent);
 }
 
-/* The final answer following a preamble is a normal message bubble. Keep a
-   clear top margin so it sits as a distinct unit below the amber card rather
-   than continuing it; combined with the preamble's own margin-bottom this
-   gives each its own boundary and breathing room. */
+/* The final answer following a preamble is a normal, self-contained delivery
+   bubble. Keep a clear top margin so it sits as a distinct unit below the amber
+   card rather than continuing it; combined with the preamble's own
+   margin-bottom this gives each its own boundary and breathing room. */
 .message-row.after-preamble {
   margin-top: 2px;
+}
+
+/* The answer keeps its full indigo delivery bubble: wash, a full hairline
+   border on all four sides, fully rounded corners, padding, and the keycap
+   under-edge. Only the fused-seam treatment is gone (no border-top:0, no
+   half-rounded card shared with the amber preamble); the preamble and the
+   answer are two separate bubbles, never one card. */
+.message-row.after-preamble .message-content {
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--delivery-accent) 20%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--delivery-accent-soft);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--delivery-accent) 14%, transparent);
 }
 
 /* The current user and every other participant have independent alignment

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { markdown } from "../../lib/format";
   import { toolDetail } from "../../lib/chat/tool-detail";
   import type { PreambleBlock } from "../../lib/types";
@@ -15,8 +16,8 @@
   // state then sticks. Already-final blocks (loaded from history) mount
   // collapsed. autoCollapsed guards the transition so re-opening a finished
   // turn is not clobbered by the effect re-running.
-  let preambleOpen = $state(!block.final);
-  let autoCollapsed = $state(block.final);
+  let preambleOpen = $state(untrack(() => !block.final));
+  let autoCollapsed = $state(untrack(() => block.final));
 
   $effect(() => {
     if (block.final && !autoCollapsed) {
