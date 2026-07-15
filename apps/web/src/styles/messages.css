@@ -689,8 +689,9 @@
 
 /* Coalesced agent preamble block: one block per agent turn, interleaving
    commentary prose with individually collapsed tool-call rows in arrival
-   order. The block opens while the turn is live and collapses to a single
-   line once the final answer lands. Theme-tied to --activity-accent (amber on
+   order. The block stays open when the final answer lands so completed turns
+   preserve the same visible work log as OpenClaw WebChat. Theme-tied to
+   --activity-accent (amber on
    both themes); the wash is deliberately faint so the block reads as
    secondary to the final answer, which renders as a clearly separate ordinary
    message below it.
@@ -721,11 +722,6 @@
   border-radius: var(--radius-lg);
   background: var(--activity-accent-soft);
   box-shadow: 0 2px 0 color-mix(in srgb, var(--activity-accent) 14%, transparent);
-}
-
-.message-row.is-preamble-collapsed .message-content {
-  padding-top: 6px;
-  padding-bottom: 6px;
 }
 
 /* Boxed preamble<->answer cohesion: when an agent preamble is immediately
@@ -780,16 +776,6 @@
   border-bottom-right-radius: var(--radius-lg);
   background: var(--delivery-accent-soft);
   box-shadow: 0 2px 0 color-mix(in srgb, var(--delivery-accent) 14%, transparent);
-}
-
-/* Collapsed preamble inside the boxed pair: keep the compact one-line height
-   without re-adding the standalone vertical padding, and render a distinct
-   yellow bar capping the blue final block below it. */
-.message-row.is-preamble.before-final-message.is-preamble-collapsed .message-content {
-  padding-top: 7px;
-  padding-bottom: 7px;
-  background: color-mix(in srgb, var(--activity-accent) 10%, var(--panel));
-  border-bottom: 1px solid color-mix(in srgb, var(--activity-accent) 30%, transparent);
 }
 
 /* The current user and every other participant have independent alignment

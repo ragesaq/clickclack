@@ -60,8 +60,8 @@
   // Coalesced agent activity: consecutive same-turn agent_commentary/agent_tool
   // rows are collapsed (client-side) into one synthetic row carrying a
   // preamble_block. When present, the row renders as a single preamble block
-  // (incrementing commentary + collapsed tool sub-items, collapse-to-one-line
-  // when the turn ends) instead of the final-answer treatment.
+  // (incrementing commentary + compact tool sub-items, expanded by default
+  // for both live and completed turns) instead of the final-answer treatment.
   let preambleBlock = $derived(message.preamble_block);
   // Boxed preamble<->answer cohesion. Within an agent message group the
   // synthetic preamble row is immediately followed by the same author's final
@@ -113,7 +113,6 @@
   class:is-failed={isFailed}
   class:is-deleted={isDeleted}
   class:is-preamble={Boolean(preambleBlock)}
-  class:is-preamble-collapsed={preambleBlock?.final === true}
   class:is-preamble-live={preambleBlock?.final === false}
   class:before-final-message={precedesFinalMessage}
   class:after-preamble={followsPreamble}
