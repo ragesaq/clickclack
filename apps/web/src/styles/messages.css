@@ -711,12 +711,13 @@
   padding-bottom: 4px;
 }
 
-/* Standalone / still-live preamble (no final answer attached yet): render the
-   yellow working log as an inline bubble within the content column, mirroring
-   the boxed pre-final treatment, so the streaming/growing phase is inline and
-   not full-bleed. Scoped to NOT .before-final-message so the boxed pair keeps
-   its own top-of-card styling. */
-.message-row.is-preamble:not(.before-final-message) .message-content {
+/* Every agent preamble renders as one self-contained rounded card (amber
+   working-log wash + keycap under-edge), whether it is still live or already
+   paired with a final answer. The card is constrained to the content column so
+   the streaming/growing phase reads like a message, not a full-bleed banner.
+   The final answer that follows is a separate ordinary chat bubble with its
+   own full boundary and spacing: the two are never fused into a single card. */
+.message-row.is-preamble .message-content {
   padding: 10px 14px;
   border: 1px solid color-mix(in srgb, var(--activity-accent) 20%, transparent);
   border-radius: var(--radius-lg);
@@ -724,58 +725,12 @@
   box-shadow: 0 2px 0 color-mix(in srgb, var(--activity-accent) 14%, transparent);
 }
 
-/* Boxed preamble<->answer cohesion: when an agent preamble is immediately
-   followed by its final answer (same group/author), the two rows merge into a
-   single bordered card with a flat internal seam so the activity log and the
-   answer read as one cohesive unit (mirrors the ClawCanvas inline model). Scoped
-   to the paired rows only; a standalone or still-live preamble keeps its
-   full-bleed wash + gutter accent above. */
-.message-row.is-preamble.before-final-message {
-  background: transparent;
-  margin-bottom: 0;
-  padding-top: 2px;
-  padding-bottom: 0;
-}
-
+/* The final answer following a preamble is a normal message bubble. Keep a
+   clear top margin so it sits as a distinct unit below the amber card rather
+   than continuing it; combined with the preamble's own margin-bottom this
+   gives each its own boundary and breathing room. */
 .message-row.after-preamble {
-  margin-top: 0;
-  padding-top: 0;
-  padding-bottom: 2px;
-}
-
-/* The gutter accent bar belongs to the standalone preamble; the boxed pair
-   carries its accent on the card's wash and border instead, so suppress it. */
-.message-row.is-preamble.before-final-message::before {
-  display: none;
-}
-
-/* Preamble = the amber working-log header (top of the card). */
-.message-row.is-preamble.before-final-message .message-content {
-  padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--activity-accent) 20%, transparent);
-  background: var(--activity-accent-soft);
-}
-
-/* Preamble = top of the card: round the top, drop the bottom edge so the seam
-   is flat and the answer below continues the same box. */
-.message-row.is-preamble.before-final-message .message-content {
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-  border-bottom: 0;
-}
-
-/* Answer = the delivered indigo message (bottom of the card). This is the
-   hero: the indigo wash + the card's keycap under-edge read it as the primary
-   delivery, with the amber preamble as its secondary header. Flat top meets
-   the seam; rounded bottom closes the card. */
-.message-row.after-preamble .message-content {
-  padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--delivery-accent) 20%, transparent);
-  border-top: 0;
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
-  background: var(--delivery-accent-soft);
-  box-shadow: 0 2px 0 color-mix(in srgb, var(--delivery-accent) 14%, transparent);
+  margin-top: 2px;
 }
 
 /* The current user and every other participant have independent alignment

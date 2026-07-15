@@ -63,17 +63,14 @@
   // (incrementing commentary + compact tool sub-items, expanded by default
   // for both live and completed turns) instead of the final-answer treatment.
   let preambleBlock = $derived(message.preamble_block);
-  // Boxed preamble<->answer cohesion. Within an agent message group the
-  // synthetic preamble row is immediately followed by the same author's final
-  // answer (coalesceAgentActivity anchors the block at the turn, ordinary
-  // messages pass through), so within-group adjacency alone identifies the
-  // pair. The preamble that precedes a final answer and the answer that follows
-  // a preamble share one bordered card with a flat internal seam, mirroring the
-  // ClawCanvas inline model so the activity log and the answer read as one unit.
+  // Preamble/answer separation. Within an agent message group the synthetic
+  // preamble row is immediately followed by the same author's final answer
+  // (coalesceAgentActivity anchors the block at the turn, ordinary messages
+  // pass through), so within-group adjacency identifies the answer that follows
+  // a preamble. That answer is a normal chat bubble; .after-preamble only adds a
+  // top margin so it sits as a distinct unit below the amber preamble card,
+  // never fused into it.
   let followsPreamble = $derived(Boolean(previousMessage?.preamble_block) && !preambleBlock);
-  let precedesFinalMessage = $derived(
-    Boolean(preambleBlock) && Boolean(nextMessage) && !nextMessage?.preamble_block,
-  );
   let threadReplyCount = $derived(message.thread_state?.reply_count || 0);
   let hasThreadReplies = $derived(threadReplyCount > 0);
   let threadTime = $derived(threadActivityTime(message));
@@ -114,7 +111,6 @@
   class:is-deleted={isDeleted}
   class:is-preamble={Boolean(preambleBlock)}
   class:is-preamble-live={preambleBlock?.final === false}
-  class:before-final-message={precedesFinalMessage}
   class:after-preamble={followsPreamble}
   class:can-open-thread={canOpenThread}
   data-message-id={message.id}

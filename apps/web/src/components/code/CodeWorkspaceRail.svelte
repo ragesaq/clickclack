@@ -328,15 +328,15 @@
               <article class="code-agent-row">
                 <span class="code-agent-avatar" aria-hidden="true">{initials(agent)}</span>
                 <div class="code-agent-identity">
-                  <strong>{agent.display_name}</strong>
-                  <small>{agent.handle ? `@${agent.handle}` : "Bot participant"}</small>
+                  <span class="code-agent-line code-agent-line-primary">
+                    <strong>{agent.display_name}</strong>
+                    {#if agent.handle}<span class="code-agent-handle">/ @{agent.handle}</span>{/if}
+                    <span class="code-agent-kind">· OpenClaw Agent</span>
+                  </span>
+                  <span class="code-agent-line code-agent-line-meta">
+                    owner {ownerName(agent)} · model: {profile?.model || "Not reported"} · {profile?.thinking || "Not reported"}
+                  </span>
                 </div>
-                <dl>
-                  <div><dt>Harness</dt><dd>{profile?.harness || "Not reported"}</dd></div>
-                  <div><dt>Model</dt><dd>{profile?.model || "Not reported"}</dd></div>
-                  <div><dt>Thinking</dt><dd>{profile?.thinking || "Not reported"}</dd></div>
-                  <div><dt>Owner</dt><dd>{ownerName(agent)}</dd></div>
-                </dl>
               </article>
             {/each}
           </div>

@@ -9,11 +9,21 @@
 
   let { block }: Props = $props();
 
-  // Agent activity is visible by default for both live and completed turns.
-  // This keeps the durable conversation at parity with OpenClaw WebChat: a
-  // final answer must not hide the commentary and tool timeline that produced
-  // it. Operators can still collapse an individual preamble on demand.
-  let preambleOpen = $state(true);
+  // Agent activity is visible only while the turn is live. When the final
+  // answer lands the preamble auto-collapses once, so completed turns default
+  // to a quiet one-line pill; operators can re-open on demand and that manual
+  // state then sticks. Already-final blocks (loaded from history) mount
+  // collapsed. autoCollapsed guards the transition so re-opening a finished
+  // turn is not clobbered by the effect re-running.
+  let preambleOpen = $state(!block.final);
+  let autoCollapsed = $state(block.final);
+
+  $effect(() => {
+    if (block.final && !autoCollapsed) {
+      preambleOpen = false;
+      autoCollapsed = true;
+    }
+  });
 
   // Per-tool expansion: every tool row renders collapsed to a one-line summary
   // (glyph + action + tool name + truncated detail) and expands on click to

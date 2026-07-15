@@ -497,27 +497,23 @@
   color: var(--danger);
 }
 
-.code-pr-status dl,
-.code-agent-row dl {
+.code-pr-status dl {
   display: grid;
   gap: 4px;
 }
 
-.code-pr-status dl > div,
-.code-agent-row dl > div {
+.code-pr-status dl > div {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr);
   gap: 7px;
 }
 
-.code-pr-status dt,
-.code-agent-row dt {
+.code-pr-status dt {
   color: var(--muted-2);
   font-size: 9px;
 }
 
-.code-pr-status dd,
-.code-agent-row dd {
+.code-pr-status dd {
   overflow: hidden;
   color: var(--muted);
   font-size: 9px;
@@ -559,26 +555,30 @@
   gap: 10px;
 }
 
+/* Compact two-line identity strip, ~one 32px icon tall. The icon spans both
+   lines (row is vertically centered); no dl metadata stack, no tall card, no
+   reserved whitespace. Line 1 = name / @handle · kind; line 2 = owner · model
+   · thinking. */
 .code-agent-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   align-items: center;
-  gap: 2px 9px;
+  gap: 0 9px;
   border-left: 2px solid color-mix(in srgb, var(--accent) 24%, var(--line));
   padding-left: 8px;
 }
 
 .code-agent-avatar {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
   border-radius: 8px;
   background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -588,17 +588,37 @@
   gap: 1px;
 }
 
-.code-agent-identity strong {
+.code-agent-line {
+  min-width: 0;
   overflow: hidden;
-  color: var(--text);
-  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.code-agent-row dl {
-  grid-column: 2;
-  margin-top: 5px;
+.code-agent-line-primary {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.code-agent-line-primary strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.code-agent-handle {
+  color: var(--muted);
+}
+
+.code-agent-kind {
+  color: var(--muted-2);
+}
+
+.code-agent-line-meta {
+  color: var(--muted-2);
+  font-size: 10px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
