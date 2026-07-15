@@ -1,0 +1,148 @@
+{
+  "artifacts": [
+    {
+      "path": ".hyperreview/contract-verification-2026-07-15T02-56-11Z/result.json",
+      "role": "result",
+      "schemaVersion": "hyperreview-result/v0",
+      "sha256": "d3d5198ef95607e4d854af06ed273bc5667dccb7e0dd27036c8e7577bfed55e0"
+    },
+    {
+      "path": ".hyperreview/reflex/bba8aa85679a07fb1698e5effe73a6da9d327685.json",
+      "role": "reflex-decision",
+      "schemaVersion": "hyperreview-reflex-decision/v1",
+      "sha256": "d17cc60980df620fdcc3f54cafbc80a0151ba43c2f332567c92a74d3b6873470"
+    },
+    {
+      "path": ".hyperreview/contract-verification-2026-07-15T02-56-11Z/summary.md",
+      "role": "summary",
+      "schemaVersion": null,
+      "sha256": "5b0890c245cd76f668357bb7f72015dfb45540514b2a0f3408cf24c4e1524507"
+    }
+  ],
+  "capabilityProof": {
+    "capabilitiesUsed": [
+      "alternateModel",
+      "artifactWrite",
+      "chatProjection",
+      "commitTrailer",
+      "receiptValidation"
+    ],
+    "capabilityFailures": [],
+    "installerProfile": "multi-tool"
+  },
+  "createdAt": "2026-07-15T03:00:32+00:00",
+  "lineage": {
+    "childReceiptIds": [],
+    "parentReceiptIds": [],
+    "supersedesReceiptId": null
+  },
+  "producer": {
+    "kind": "tool",
+    "name": "hyperreview-reflex-git-audit",
+    "version": "0.3.4"
+  },
+  "projections": {
+    "chat": {
+      "format": "chat-line",
+      "text": "HyperReview: contract, Full, cross-model/glm-5.2:cloud@unknown, PASS, 0 findings, proceed"
+    }
+  },
+  "receiptId": "hrrec-bba8aa85679a-contract",
+  "result": {
+    "action": "proceed",
+    "blockingFindings": 0,
+    "confidence": "high",
+    "nonBlockingFindings": 0,
+    "residualRisk": "The full repository gate and focused browser test passed, the staged contract was traced end to end, and an independent different-family model re-reviewed the corrected delta.",
+    "topRisk": "PASS after one correction cycle. Both prior low contract findings are fixed, the null claim is rejected, and no unresolved contract finding remains.",
+    "verdict": "PASS"
+  },
+  "review": {
+    "independence": "cross-model",
+    "lens": "contract",
+    "reason": "Independent cross-family contract review passed after two low fixes",
+    "tier": "Full",
+    "topology": {
+      "agents": 1,
+      "models": 2,
+      "tools": 1
+    },
+    "trigger": "reflex"
+  },
+  "reviewer": {
+    "kind": "tool",
+    "name": "ollama/glm-5.2:cloud/high",
+    "version": null
+  },
+  "runtime": {
+    "effectiveThinking": null,
+    "model": "ollama/glm-5.2:cloud",
+    "provider": "ollama",
+    "requestedThinking": null,
+    "temperature": null,
+    "thinkingBudgetTokens": null
+  },
+  "schemaVersion": "hyperreview.receipt/v1",
+  "target": {
+    "baseSha": "944471cecd1d1b33dd55a5a9a4ff9c1f89ed5053",
+    "changedPaths": [
+      "README.md",
+      "apps/api/cmd/clickclack/main.go",
+      "apps/api/internal/config/config.go",
+      "apps/api/internal/config/config_test.go",
+      "apps/api/internal/httpapi/code_workspace.go",
+      "apps/api/internal/httpapi/code_workspace_test.go",
+      "apps/api/internal/httpapi/features.go",
+      "apps/api/internal/httpapi/github.go",
+      "apps/api/internal/httpapi/mutations.go",
+      "apps/api/internal/httpapi/server.go",
+      "apps/api/internal/store/postgres/bots.go",
+      "apps/api/internal/store/postgres/channel_presentation_test.go",
+      "apps/api/internal/store/postgres/migrations/0022_code_workspace_details.sql",
+      "apps/api/internal/store/postgres/mutations.go",
+      "apps/api/internal/store/postgres/sqlc/queries.sql",
+      "apps/api/internal/store/postgres/sqlc/schema.sql",
+      "apps/api/internal/store/postgres/sqlc_adapters.go",
+      "apps/api/internal/store/postgres/storedb/models.go",
+      "apps/api/internal/store/postgres/storedb/queries.sql.go",
+      "apps/api/internal/store/sqlite/bots.go",
+      "apps/api/internal/store/sqlite/channel_presentation_test.go",
+      "apps/api/internal/store/sqlite/migrations/0029_code_workspace_details.sql",
+      "apps/api/internal/store/sqlite/mutations.go",
+      "apps/api/internal/store/sqlite/sqlc/queries.sql",
+      "apps/api/internal/store/sqlite/sqlc/schema.sql",
+      "apps/api/internal/store/sqlite/sqlc_adapters.go",
+      "apps/api/internal/store/sqlite/storedb/models.go",
+      "apps/api/internal/store/sqlite/storedb/queries.sql.go",
+      "apps/api/internal/store/types.go",
+      "apps/api/internal/webassets/dist/200.html",
+      "apps/api/internal/webassets/dist/_app/immutable/assets/0.B_OgD0BD.css",
+      "apps/api/internal/webassets/dist/_app/immutable/chunks/2nuCcM3V.js",
+      "apps/api/internal/webassets/dist/_app/immutable/entry/app.CZpWu3o8.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/0.BZ627Wc-.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/10.BSBisPIi.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/3.DCDZZbGr.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/4.DmfA7owx.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/5.CmumY83s.js",
+      "apps/api/internal/webassets/dist/index.html",
+      "apps/api/internal/webassets/dist/service-worker.js",
+      "apps/web/src/ChatApp.svelte",
+      "apps/web/src/components/code/CodeWorkspaceRail.svelte",
+      "apps/web/src/lib/types.ts",
+      "apps/web/src/styles/code-workspace.css",
+      "docs/configuration.md",
+      "docs/deployment.md",
+      "infra/migrations/postgres/0022_code_workspace_details.sql",
+      "infra/migrations/sqlite/0029_code_workspace_details.sql",
+      "packages/protocol/openapi.yaml",
+      "packages/sdk-ts/src/generated/openapi.d.ts",
+      "packages/sdk-ts/src/index.ts",
+      "tests/e2e/code-channel-mode.spec.ts"
+    ],
+    "commitSha": null,
+    "diffSha256": "159d0b03c256b8e4859eeb3211f21c7ca9375f1d6d9ee08d80fd9f4bf8805f21",
+    "headSha": "bba8aa85679a07fb1698e5effe73a6da9d327685",
+    "prNumber": null,
+    "repo": "openclaw/clickclack"
+  }
+}

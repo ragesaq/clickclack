@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "hyperreview-result/v0",
+  "mode": "contract-verification",
+  "reReview": true,
+  "target": {
+    "description": "Corrected staged code-workspace patch over HEAD 944471cecd1d1b33dd55a5a9a4ff9c1f89ed5053",
+    "stagedTree": "bba8aa85679a07fb1698e5effe73a6da9d327685",
+    "pathsSha256": "3415584239de805c9bae0e5cb370f330bffe42a3b3254ac2b7b51ee8727c47bd",
+    "diffSha256": "81ab48077f136ea98e82896e3b88077035521ba211a0349ee95015b487b2ab0f",
+    "stagedPaths": [
+      "README.md",
+      "apps/api/cmd/clickclack/main.go",
+      "apps/api/internal/config/config.go",
+      "apps/api/internal/config/config_test.go",
+      "apps/api/internal/httpapi/code_workspace.go",
+      "apps/api/internal/httpapi/code_workspace_test.go",
+      "apps/api/internal/httpapi/features.go",
+      "apps/api/internal/httpapi/github.go",
+      "apps/api/internal/httpapi/mutations.go",
+      "apps/api/internal/httpapi/server.go",
+      "apps/api/internal/store/postgres/bots.go",
+      "apps/api/internal/store/postgres/channel_presentation_test.go",
+      "apps/api/internal/store/postgres/migrations/0022_code_workspace_details.sql",
+      "apps/api/internal/store/postgres/mutations.go",
+      "apps/api/internal/store/postgres/sqlc/queries.sql",
+      "apps/api/internal/store/postgres/sqlc/schema.sql",
+      "apps/api/internal/store/postgres/sqlc_adapters.go",
+      "apps/api/internal/store/postgres/storedb/models.go",
+      "apps/api/internal/store/postgres/storedb/queries.sql.go",
+      "apps/api/internal/store/sqlite/bots.go",
+      "apps/api/internal/store/sqlite/channel_presentation_test.go",
+      "apps/api/internal/store/sqlite/migrations/0029_code_workspace_details.sql",
+      "apps/api/internal/store/sqlite/mutations.go",
+      "apps/api/internal/store/sqlite/sqlc/queries.sql",
+      "apps/api/internal/store/sqlite/sqlc/schema.sql",
+      "apps/api/internal/store/sqlite/sqlc_adapters.go",
+      "apps/api/internal/store/sqlite/storedb/models.go",
+      "apps/api/internal/store/sqlite/storedb/queries.sql.go",
+      "apps/api/internal/store/types.go",
+      "apps/api/internal/webassets/dist/200.html",
+      "apps/api/internal/webassets/dist/_app/immutable/assets/0.B_OgD0BD.css",
+      "apps/api/internal/webassets/dist/_app/immutable/chunks/2nuCcM3V.js",
+      "apps/api/internal/webassets/dist/_app/immutable/entry/app.CZpWu3o8.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/0.BZ627Wc-.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/10.BSBisPIi.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/3.DCDZZbGr.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/4.DmfA7owx.js",
+      "apps/api/internal/webassets/dist/_app/immutable/nodes/5.CmumY83s.js",
+      "apps/api/internal/webassets/dist/index.html",
+      "apps/api/internal/webassets/dist/service-worker.js",
+      "apps/web/src/ChatApp.svelte",
+      "apps/web/src/components/code/CodeWorkspaceRail.svelte",
+      "apps/web/src/lib/types.ts",
+      "apps/web/src/styles/code-workspace.css",
+      "docs/configuration.md",
+      "docs/deployment.md",
+      "infra/migrations/postgres/0022_code_workspace_details.sql",
+      "infra/migrations/sqlite/0029_code_workspace_details.sql",
+      "packages/protocol/openapi.yaml",
+      "packages/sdk-ts/src/generated/openapi.d.ts",
+      "packages/sdk-ts/src/index.ts",
+      "tests/e2e/code-channel-mode.spec.ts"
+    ]
+  },
+  "targetType": "staged-patch",
+  "scope": "Additive channel plan and goal fields, bot runtime profiles, GitHub pull-request status, OpenAPI and TypeScript SDK contracts, SQLite and Postgres migrations, handlers, persistence, and compatibility tests.",
+  "verdict": "PASS",
+  "evidenceSources": [
+    {
+      "id": "E1",
+      "kind": "diff",
+      "description": "Full staged patch, 54 paths, pinned by staged tree and diff SHA-256.",
+      "refs": [{ "kind": "git", "ref": "git diff --staged" }]
+    },
+    {
+      "id": "E2",
+      "kind": "test",
+      "description": "Full repository check passed: Go tests, web and SDK builds, desktop and infrastructure tests, typechecks, lint, and formatting.",
+      "refs": [{ "kind": "command", "ref": "PATH=/usr/local/go/bin:$PATH pnpm check" }]
+    },
+    {
+      "id": "E3",
+      "kind": "test",
+      "description": "Code-channel Playwright test passed and proves omitted runtime-profile keys return 400 while complete profiles, freehand notes, live PR status, rail collapse, and responsive behavior work.",
+      "refs": [{ "kind": "command", "ref": "pnpm exec playwright test tests/e2e/code-channel-mode.spec.ts" }]
+    },
+    {
+      "id": "E4",
+      "kind": "other",
+      "description": "Independent cross-family re-review by ollama/glm-5.2:cloud at high thinking returned PASS with no findings after inspecting the corrective contract delta.",
+      "refs": [{ "kind": "model", "ref": "ollama/glm-5.2:cloud/high" }]
+    }
+  ],
+  "coverage": {
+    "scopeReviewed": [
+      "New request and response schemas against handler behavior",
+      "Legacy channel payload compatibility and additive database migrations",
+      "Authorization and moderation checks for operator and bot edits",
+      "GitHub pull-request status error and pagination contracts",
+      "Generated TypeScript contract alignment"
+    ],
+    "scopeNotReviewed": [
+      "Live private-repository GitHub response because the available tokens do not have access"
+    ],
+    "coverageLevel": "high",
+    "limitations": [
+      "The preferred parity-cleared max-thinking route failed before execution; the reachable different-family reviewer ran at high thinking, so assurance is no_eligible_parity_reviewer."
+    ]
+  },
+  "confidence": {
+    "level": "high",
+    "anchor": 75,
+    "score": 0.9,
+    "rationale": "The full repository gate and focused browser test passed, the staged contract was traced end to end, and an independent different-family model re-reviewed the corrected delta."
+  },
+  "analysisPackage": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "finding-ledger",
+    "judge"
+  ],
+  "passesRun": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "finding-ledger",
+    "judge"
+  ],
+  "conditionalPassesSkipped": [],
+  "findings": [],
+  "rejectedFindings": [
+    {
+      "id": "RF-1",
+      "title": "JSON null allegedly satisfies the workspace-notes request schema",
+      "severity": "low",
+      "confidence": {
+        "level": "high",
+        "anchor": 75,
+        "rationale": "The OpenAPI 3.1 properties are typed as string, so null is rejected independently of minProperties."
+      },
+      "symptom": "The first review claimed a payload containing plan_body:null would satisfy minProperties but fail in the handler.",
+      "source": "packages/protocol/openapi.yaml UpdateCodeWorkspaceNotesRequest",
+      "consequence": "No contract gap exists because null is not a valid string value.",
+      "remedy": "No change required.",
+      "verification": "Compared the OpenAPI property type with the Go pointer request binding.",
+      "evidenceRefs": ["E1", "E4"],
+      "route": "close-rejected"
+    }
+  ],
+  "findingLedger": [
+    {
+      "id": "FL-1",
+      "findingId": "F1",
+      "disposition": "resolved-fixed",
+      "note": "All four new endpoints now document their actual 400, 401, 403, and 502 response classes as applicable."
+    },
+    {
+      "id": "FL-2",
+      "findingId": "F2",
+      "disposition": "resolved-fixed",
+      "note": "Runtime-profile request fields use pointer binding, omitted keys return 400, explicit empty strings remain valid, and the browser test proves the missing-key case."
+    }
+  ],
+  "cleanResult": {
+    "status": "no-findings",
+    "statement": "PASS after one correction cycle. Both prior low contract findings are fixed, the null claim is rejected, and no unresolved contract finding remains.",
+    "scopeChecked": [
+      "OpenAPI and handler alignment",
+      "legacy payload acceptance",
+      "migration safety",
+      "generated SDK types",
+      "error responses"
+    ]
+  },
+  "reportQuality": {
+    "status": "passed",
+    "checks": [
+      "Pinned target and evidence recorded",
+      "Required passes completed",
+      "Prior findings dispositioned",
+      "Coverage and limitations stated",
+      "Verdict follows the contract-verification mode"
+    ]
+  },
+  "nextAction": "no-action",
+  "gateMode": "blocking",
+  "blocksStage": false,
+  "activationPlan": {
+    "requestedWorkShapes": ["api-contract-change", "schema-migration", "generated-sdk"],
+    "normalizedWorkShapes": ["additive-code-workspace-contract"],
+    "normalizationActions": [],
+    "activatedPasses": [
+      { "id": "changed-surface", "reason": "Mode required", "sourceSignal": "Staged patch", "mandatory": true },
+      { "id": "contract-correctness", "reason": "Mode required", "sourceSignal": "OpenAPI and handler changes", "mandatory": true },
+      { "id": "test-evidence", "reason": "Mode required", "sourceSignal": "Repository and browser tests", "mandatory": true },
+      { "id": "finding-ledger", "reason": "Re-review after findings", "sourceSignal": "Prior review", "mandatory": true },
+      { "id": "judge", "reason": "Mode required", "sourceSignal": "Completed evidence", "mandatory": true }
+    ],
+    "skippedConditionalPasses": [],
+    "selectedDepth": "deep",
+    "depthPromotionReason": "Public API, persistence, authentication, and external GitHub reads changed together.",
+    "requiredEvidence": ["target contract", "consumer assumption", "verification strategy"],
+    "codeAnalysisRequirements": { "status": "required-used", "tool": "git and repository tests", "artifactRefs": ["E1", "E2", "E3"] },
+    "requestDisposition": "continue",
+    "expectedFollowupMode": "none"
+  },
+  "testsOrCommands": [
+    { "cmd": "pnpm check", "exit": 0 },
+    { "cmd": "pnpm exec playwright test tests/e2e/code-channel-mode.spec.ts", "exit": 0 },
+    { "cmd": "go test ./apps/api/internal/httpapi ./apps/api/internal/store/sqlite ./apps/api/internal/store/postgres", "exit": 0 }
+  ],
+  "escalation": {
+    "author": "openai/gpt-5.6-sol/high",
+    "reviewer": "ollama/glm-5.2:cloud/high",
+    "reviewerModel": "ollama/glm-5.2:cloud",
+    "independence": "cross-model",
+    "familyRelation": "xfam",
+    "assuranceState": "no_eligible_parity_reviewer",
+    "parityMatrixVersion": "0.4.0",
+    "parityMatrixSha256": "522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6"
+  }
+}
