@@ -42,6 +42,15 @@ type AuthMagicLink struct {
 	UsedAt      sql.NullString `json:"used_at"`
 }
 
+type BotRuntimeProfile struct {
+	WorkspaceID string `json:"workspace_id"`
+	BotUserID   string `json:"bot_user_id"`
+	Harness     string `json:"harness"`
+	Model       string `json:"model"`
+	Thinking    string `json:"thinking"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
 type BotToken struct {
 	ID          string         `json:"id"`
 	TokenHash   string         `json:"token_hash"`
@@ -63,6 +72,8 @@ type Channel struct {
 	Kind             string         `json:"kind"`
 	Template         string         `json:"template"`
 	CodeMode         string         `json:"code_mode"`
+	PlanBody         string         `json:"plan_body"`
+	GoalBody         string         `json:"goal_body"`
 	PullRequestUrl   string         `json:"pull_request_url"`
 	PullRequestTitle string         `json:"pull_request_title"`
 	CreatedAt        string         `json:"created_at"`

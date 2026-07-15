@@ -38,4 +38,18 @@ func TestChannelPresentationPostgresRoundTrip(t *testing.T) {
 	if got.Template != store.ChannelTemplateCode || got.CodeMode != store.ChannelCodeModeMultiUser {
 		t.Fatalf("unexpected PostgreSQL code channel: %#v", got)
 	}
+	planBody := "Inspect, patch, verify"
+	goalBody := "Keep the project room current"
+	got, _, err = st.UpdateCodeWorkspaceNotes(ctx, store.UpdateCodeWorkspaceNotesInput{
+		ChannelID:   created.ID,
+		ActorUserID: owner.ID,
+		PlanBody:    &planBody,
+		GoalBody:    &goalBody,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.PlanBody != planBody || got.GoalBody != goalBody {
+		t.Fatalf("unexpected PostgreSQL workspace notes: %#v", got)
+	}
 }

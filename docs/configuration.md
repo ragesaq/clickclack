@@ -38,6 +38,7 @@ hook in `cmd/clickclack/main.go`.
 | —                     | `CLICKCLACK_COOKIE_NAMESPACE`    | unset       | Stable lowercase cookie namespace for multiple trusted ClickClack instances on one hostname. |
 | —                     | `CLICKCLACK_GITHUB_CLIENT_ID`    | unset       | GitHub OAuth app client ID. |
 | —                     | `CLICKCLACK_GITHUB_CLIENT_SECRET`| unset       | GitHub OAuth app client secret. |
+| `github_api_token`    | `CLICKCLACK_GITHUB_API_TOKEN`    | unset       | Optional read token for linked private pull request status. |
 | —                     | `CLICKCLACK_GITHUB_ALLOWED_ORG`  | unset       | Optional GitHub org login gate. Requires `read:org` scope. |
 | —                     | `CLICKCLACK_GITHUB_MODERATOR_ORG`| unset       | Optional GitHub org whose members become guest-workspace moderators. Requires `read:org` scope. |
 | —                     | `CLICKCLACK_PUSHOVER_API_TOKEN`  | unset       | Pushover application API token. Users still opt in with their own Pushover user key in account settings. |
@@ -61,6 +62,7 @@ hook in `cmd/clickclack/main.go`.
   "cookie_namespace": "production",
   "github_client_id": "Iv1.xxxxxxxxxxxx",
   "github_client_secret": "...",
+  "github_api_token": "github_pat_...",
   "github_allowed_org": "openclaw",
   "github_moderator_org": "openclaw",
   "pushover_api_token": "azGDORePK8gMaC0QOYAMyEEuzJnyUi",

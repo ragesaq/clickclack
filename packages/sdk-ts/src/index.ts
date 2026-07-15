@@ -29,6 +29,15 @@ export type BotWithTokens = {
   tokens: BotToken[];
 };
 
+export type BotRuntimeProfile = {
+  workspace_id: string;
+  bot_user_id: string;
+  harness: string;
+  model: string;
+  thinking: string;
+  updated_at: string;
+};
+
 export type OwnedBotWorkspace = {
   id: string;
   route_id: string;
@@ -148,6 +157,8 @@ export type Channel = {
   kind: string;
   template: "chat" | "code";
   code_mode: "single_user" | "multi_user";
+  plan_body: string;
+  goal_body: string;
   pull_request_url: string;
   pull_request_title: string;
   created_at: string;
@@ -155,6 +166,16 @@ export type Channel = {
   last_seq?: number;
   last_read_seq?: number;
   unread_count?: number;
+};
+
+export type PullRequestStatus = {
+  state: "draft" | "open" | "closed" | "merged";
+  ci_state: "passing" | "failing" | "pending" | "not_reported" | "unknown";
+  checks_total: number;
+  review_state: "pending" | "approved" | "changes_requested";
+  last_reply_author: string;
+  last_reply_at: string;
+  updated_at: string;
 };
 
 export type Topic = {
@@ -419,6 +440,26 @@ export class ClickClackClient {
         `/api/workspaces/${workspaceId}/bots`,
       );
       return data.bots;
+    },
+    listRuntimeProfiles: async (workspaceId: string): Promise<BotRuntimeProfile[]> => {
+      const data = await this.request<{ profiles: BotRuntimeProfile[] }>(
+        `/api/workspaces/${workspaceId}/agent-profiles`,
+      );
+      return data.profiles;
+    },
+    updateRuntimeProfile: async (
+      workspaceId: string,
+      botUserId: string,
+      input: { harness: string; model: string; thinking: string },
+    ): Promise<BotRuntimeProfile> => {
+      const data = await this.request<{ profile: BotRuntimeProfile }>(
+        `/api/workspaces/${workspaceId}/bots/${botUserId}/runtime-profile`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(input),
+        },
+      );
+      return data.profile;
     },
     create: async (
       workspaceId: string,
@@ -694,6 +735,25 @@ export class ClickClackClient {
         body: JSON.stringify(input),
       });
       return data.channel;
+    },
+    updateWorkspaceNotes: async (
+      channelId: string,
+      input: { plan_body?: string; goal_body?: string },
+    ): Promise<Channel> => {
+      const data = await this.request<{ channel: Channel }>(
+        `/api/channels/${channelId}/workspace-notes`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(input),
+        },
+      );
+      return data.channel;
+    },
+    pullRequestStatus: async (channelId: string): Promise<PullRequestStatus> => {
+      const data = await this.request<{ pull_request: PullRequestStatus }>(
+        `/api/channels/${channelId}/pull-request-status`,
+      );
+      return data.pull_request;
     },
     messages: async (channelId: string, afterSeq = 0): Promise<Message[]> => {
       const data = await this.request<{ messages: Message[] }>(

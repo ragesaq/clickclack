@@ -139,6 +139,7 @@ func serve(args []string) error {
 		GitHubOAuth: httpapi.GitHubOAuthConfig{
 			ClientID:     cfg.GitHubClientID,
 			ClientSecret: cfg.GitHubClientSecret,
+			APIToken:     cfg.GitHubAPIToken,
 			PublicURL:    cfg.PublicURL,
 			AllowedOrg:   cfg.GitHubAllowedOrg,
 			ModeratorOrg: cfg.GitHubModeratorOrg,

@@ -66,6 +66,8 @@ CREATE TABLE channels (
   kind TEXT NOT NULL,
   template TEXT NOT NULL DEFAULT 'chat' CHECK (template IN ('chat', 'code')),
   code_mode TEXT NOT NULL DEFAULT 'single_user' CHECK (code_mode IN ('single_user', 'multi_user')),
+  plan_body TEXT NOT NULL DEFAULT '',
+  goal_body TEXT NOT NULL DEFAULT '',
   pull_request_url TEXT NOT NULL DEFAULT '',
   pull_request_title TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
@@ -75,6 +77,18 @@ CREATE TABLE channels (
 );
 
 CREATE UNIQUE INDEX idx_channels_workspace_route_id ON channels(workspace_id, route_id) WHERE route_id IS NOT NULL;
+
+CREATE TABLE bot_runtime_profiles (
+  workspace_id TEXT NOT NULL,
+  bot_user_id TEXT NOT NULL,
+  harness TEXT NOT NULL DEFAULT '',
+  model TEXT NOT NULL DEFAULT '',
+  thinking TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (workspace_id, bot_user_id),
+  FOREIGN KEY (workspace_id, bot_user_id)
+    REFERENCES workspace_members(workspace_id, user_id) ON DELETE CASCADE
+);
 
 CREATE TABLE direct_conversations (
   id TEXT PRIMARY KEY,

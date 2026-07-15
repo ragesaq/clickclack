@@ -346,7 +346,7 @@ INSERT INTO channels (id, route_id, workspace_id, name, kind, template, code_mod
 VALUES (sqlc.arg(id), sqlc.arg(route_id), sqlc.arg(workspace_id), sqlc.arg(name), sqlc.arg(kind), sqlc.arg(template), sqlc.arg(code_mode), sqlc.arg(created_at));
 
 -- name: ListChannels :many
-SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.pull_request_url, c.pull_request_title, c.created_at, c.archived_at,
+SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.plan_body, c.goal_body, c.pull_request_url, c.pull_request_title, c.created_at, c.archived_at,
        CAST(COALESCE((SELECT MAX(channel_seq) FROM messages WHERE channel_id = c.id AND parent_message_id IS NULL), 0) AS INTEGER) AS last_seq,
        CAST(COALESCE((SELECT cr.last_read_seq FROM channel_reads cr WHERE cr.channel_id = c.id AND cr.user_id = sqlc.arg(reader_user_id)), 0) AS INTEGER) AS last_read_seq,
        CAST(COALESCE((
@@ -896,18 +896,18 @@ INSERT INTO messages (id, workspace_id, channel_id, direct_conversation_id, auth
 VALUES (sqlc.arg(id), sqlc.arg(workspace_id), sqlc.arg(channel_id), sqlc.arg(direct_conversation_id), sqlc.arg(author_id), sqlc.arg(parent_message_id), sqlc.arg(thread_root_id), NULL, sqlc.arg(thread_seq), sqlc.arg(body), 'markdown', sqlc.arg(created_at), sqlc.arg(quoted_message_id), sqlc.arg(quoted_body_snapshot), sqlc.arg(quoted_author_id), sqlc.arg(client_nonce));
 
 -- name: GetChannel :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE id = sqlc.arg(id);
 
 -- name: GetChannelByIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE workspace_id = sqlc.arg(workspace_id)
   AND id = sqlc.arg(id);
 
 -- name: GetChannelByRouteIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE workspace_id = sqlc.arg(workspace_id)
   AND route_id = sqlc.arg(route_id);
@@ -955,6 +955,27 @@ SET name = sqlc.arg(name),
     pull_request_title = sqlc.arg(pull_request_title),
     archived_at = sqlc.arg(archived_at)
 WHERE id = sqlc.arg(id);
+
+-- name: UpdateChannelWorkspaceNotes :exec
+UPDATE channels
+SET plan_body = sqlc.arg(plan_body),
+    goal_body = sqlc.arg(goal_body)
+WHERE id = sqlc.arg(id);
+
+-- name: UpsertBotRuntimeProfile :exec
+INSERT INTO bot_runtime_profiles (workspace_id, bot_user_id, harness, model, thinking, updated_at)
+VALUES (sqlc.arg(workspace_id), sqlc.arg(bot_user_id), sqlc.arg(harness), sqlc.arg(model), sqlc.arg(thinking), sqlc.arg(updated_at))
+ON CONFLICT (workspace_id, bot_user_id) DO UPDATE SET
+  harness = excluded.harness,
+  model = excluded.model,
+  thinking = excluded.thinking,
+  updated_at = excluded.updated_at;
+
+-- name: ListBotRuntimeProfiles :many
+SELECT workspace_id, bot_user_id, harness, model, thinking, updated_at
+FROM bot_runtime_profiles
+WHERE workspace_id = sqlc.arg(workspace_id)
+ORDER BY bot_user_id;
 
 -- name: UpdateMessageBody :execrows
 UPDATE messages

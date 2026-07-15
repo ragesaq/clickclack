@@ -136,6 +136,25 @@ func NormalizePullRequestContext(rawURL, rawTitle string) (string, string, error
 	return "https://github.com/" + strings.Join(segments, "/"), rawTitle, nil
 }
 
+func NormalizeCodeWorkspaceNote(value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if len(value) > 20_000 {
+		return "", ErrInvalidChannelPresentation
+	}
+	return value, nil
+}
+
+func NormalizeBotRuntimeProfile(harness, model, thinking string) (string, string, string, error) {
+	harness = strings.TrimSpace(harness)
+	model = strings.TrimSpace(model)
+	thinking = strings.TrimSpace(thinking)
+	if len(harness) > 80 || len(model) > 120 || len(thinking) > 40 ||
+		strings.ContainsAny(harness+model+thinking, "\r\n\x00") {
+		return "", "", "", ErrInvalidChannelPresentation
+	}
+	return harness, model, thinking, nil
+}
+
 // ErrTurnIDNotAllowed is returned when an ordinary ('message') row is created
 // with a non-empty turn_id. turn_id correlates a sequence of agent activity
 // rows belonging to one turn; an ordinary message carrying one contradicts the
@@ -260,6 +279,8 @@ type Channel struct {
 	Kind             string  `json:"kind"`
 	Template         string  `json:"template"`
 	CodeMode         string  `json:"code_mode"`
+	PlanBody         string  `json:"plan_body"`
+	GoalBody         string  `json:"goal_body"`
 	PullRequestURL   string  `json:"pull_request_url"`
 	PullRequestTitle string  `json:"pull_request_title"`
 	CreatedAt        string  `json:"created_at"`
@@ -377,6 +398,15 @@ type BotToken struct {
 type BotWithTokens struct {
 	Bot    User       `json:"bot"`
 	Tokens []BotToken `json:"tokens"`
+}
+
+type BotRuntimeProfile struct {
+	WorkspaceID string `json:"workspace_id"`
+	BotUserID   string `json:"bot_user_id"`
+	Harness     string `json:"harness"`
+	Model       string `json:"model"`
+	Thinking    string `json:"thinking"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
 type OwnedBotWorkspace struct {
@@ -626,6 +656,22 @@ type UpdateChannelInput struct {
 	PullRequestURL   *string
 	PullRequestTitle *string
 	Archived         *bool
+}
+
+type UpdateCodeWorkspaceNotesInput struct {
+	ChannelID   string
+	ActorUserID string
+	PlanBody    *string
+	GoalBody    *string
+}
+
+type UpsertBotRuntimeProfileInput struct {
+	WorkspaceID string
+	BotUserID   string
+	ActorUserID string
+	Harness     string
+	Model       string
+	Thinking    string
 }
 
 type CreateMessageInput struct {
@@ -950,6 +996,9 @@ type Store interface {
 	GetChannel(ctx context.Context, channelID, userID string) (Channel, error)
 	CreateChannel(ctx context.Context, input CreateChannelInput) (Channel, Event, error)
 	UpdateChannel(ctx context.Context, input UpdateChannelInput) (Channel, Event, error)
+	UpdateCodeWorkspaceNotes(ctx context.Context, input UpdateCodeWorkspaceNotesInput) (Channel, Event, error)
+	ListBotRuntimeProfiles(ctx context.Context, workspaceID, requesterID string) ([]BotRuntimeProfile, error)
+	UpsertBotRuntimeProfile(ctx context.Context, input UpsertBotRuntimeProfileInput) (BotRuntimeProfile, error)
 	ListTopics(ctx context.Context, workspaceID, requesterID string) ([]Topic, error)
 	CreateTopic(ctx context.Context, input CreateTopicInput) (Topic, error)
 	ListMessages(ctx context.Context, channelID, userID string, page MessagePageRequest) (MessagePage, error)

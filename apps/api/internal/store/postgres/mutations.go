@@ -299,6 +299,72 @@ func (s *Store) UpdateChannel(ctx context.Context, input store.UpdateChannelInpu
 	return ch, event, tx.Commit()
 }
 
+func (s *Store) UpdateCodeWorkspaceNotes(ctx context.Context, input store.UpdateCodeWorkspaceNotesInput) (store.Channel, store.Event, error) {
+	if input.PlanBody == nil && input.GoalBody == nil {
+		return store.Channel{}, store.Event{}, store.ErrInvalidChannelPresentation
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	defer tx.Rollback()
+	qtx := s.q.WithTx(tx)
+	row, err := qtx.GetChannel(ctx, input.ChannelID)
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	ch := storeChannelFromGetChannel(row)
+	if ch.Template != store.ChannelTemplateCode {
+		return store.Channel{}, store.Event{}, store.ErrInvalidChannelPresentation
+	}
+	actorRow, err := qtx.GetUser(ctx, input.ActorUserID)
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	actor := storeUserFromGetUser(actorRow)
+	if err := requireNoModerationBlockTx(ctx, tx, ch.WorkspaceID, actor.ID); err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	authorizerID := actor.ID
+	if actor.Kind == "bot" {
+		if actor.OwnerUserID == "" {
+			return store.Channel{}, store.Event{}, store.ErrWorkspaceOwnerRequired
+		}
+		authorizerID = actor.OwnerUserID
+	}
+	if err := requireWorkspaceOwnerTx(ctx, tx, ch.WorkspaceID, authorizerID); err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	planBody := ch.PlanBody
+	if input.PlanBody != nil {
+		planBody, err = store.NormalizeCodeWorkspaceNote(*input.PlanBody)
+		if err != nil {
+			return store.Channel{}, store.Event{}, err
+		}
+	}
+	goalBody := ch.GoalBody
+	if input.GoalBody != nil {
+		goalBody, err = store.NormalizeCodeWorkspaceNote(*input.GoalBody)
+		if err != nil {
+			return store.Channel{}, store.Event{}, err
+		}
+	}
+	if err := qtx.UpdateChannelWorkspaceNotes(ctx, storedb.UpdateChannelWorkspaceNotesParams{
+		PlanBody: planBody,
+		GoalBody: goalBody,
+		ID:       ch.ID,
+	}); err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	event, err := insertEvent(ctx, tx, ch.WorkspaceID, ch.ID, "channel.updated", nil, map[string]string{"channel_id": ch.ID})
+	if err != nil {
+		return store.Channel{}, store.Event{}, err
+	}
+	ch.PlanBody = planBody
+	ch.GoalBody = goalBody
+	return ch, event, tx.Commit()
+}
+
 func (s *Store) UpdateMessage(ctx context.Context, input store.UpdateMessageInput) (store.Message, store.Event, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {

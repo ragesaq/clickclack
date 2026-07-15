@@ -286,6 +286,76 @@ func (s *Store) ListBots(ctx context.Context, workspaceID, requesterID string) (
 	return out, nil
 }
 
+func (s *Store) ListBotRuntimeProfiles(ctx context.Context, workspaceID, requesterID string) ([]store.BotRuntimeProfile, error) {
+	if err := s.requireMembership(ctx, workspaceID, requesterID); err != nil {
+		return nil, err
+	}
+	rows, err := s.q.ListBotRuntimeProfiles(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	profiles := make([]store.BotRuntimeProfile, 0, len(rows))
+	for _, row := range rows {
+		profiles = append(profiles, store.BotRuntimeProfile{
+			WorkspaceID: row.WorkspaceID,
+			BotUserID:   row.BotUserID,
+			Harness:     row.Harness,
+			Model:       row.Model,
+			Thinking:    row.Thinking,
+			UpdatedAt:   row.UpdatedAt,
+		})
+	}
+	return profiles, nil
+}
+
+func (s *Store) UpsertBotRuntimeProfile(ctx context.Context, input store.UpsertBotRuntimeProfileInput) (store.BotRuntimeProfile, error) {
+	harness, model, thinking, err := store.NormalizeBotRuntimeProfile(input.Harness, input.Model, input.Thinking)
+	if err != nil {
+		return store.BotRuntimeProfile{}, err
+	}
+	botRow, err := s.q.GetUser(ctx, input.BotUserID)
+	if err != nil {
+		return store.BotRuntimeProfile{}, err
+	}
+	bot := storeUserFromGetUser(botRow)
+	if bot.Kind != "bot" {
+		return store.BotRuntimeProfile{}, errors.New("runtime profile target must be a bot")
+	}
+	if err := s.requireMembership(ctx, input.WorkspaceID, bot.ID); err != nil {
+		return store.BotRuntimeProfile{}, err
+	}
+	if input.ActorUserID != bot.ID {
+		authorizedOwner := bot.OwnerUserID
+		if authorizedOwner == "" {
+			workspace, workspaceErr := s.GetWorkspace(ctx, input.WorkspaceID, input.ActorUserID)
+			if workspaceErr != nil || workspace.Role != store.WorkspaceRoleOwner {
+				return store.BotRuntimeProfile{}, store.ErrBotOwnerRequired
+			}
+		} else if input.ActorUserID != authorizedOwner {
+			return store.BotRuntimeProfile{}, store.ErrBotOwnerRequired
+		}
+	}
+	profile := store.BotRuntimeProfile{
+		WorkspaceID: input.WorkspaceID,
+		BotUserID:   bot.ID,
+		Harness:     harness,
+		Model:       model,
+		Thinking:    thinking,
+		UpdatedAt:   now(),
+	}
+	if err := s.q.UpsertBotRuntimeProfile(ctx, storedb.UpsertBotRuntimeProfileParams{
+		WorkspaceID: profile.WorkspaceID,
+		BotUserID:   profile.BotUserID,
+		Harness:     profile.Harness,
+		Model:       profile.Model,
+		Thinking:    profile.Thinking,
+		UpdatedAt:   profile.UpdatedAt,
+	}); err != nil {
+		return store.BotRuntimeProfile{}, err
+	}
+	return profile, nil
+}
+
 func (s *Store) CreateBotToken(ctx context.Context, input store.CreateBotTokenInput) (store.BotToken, error) {
 	botUserID := strings.TrimSpace(input.BotUserID)
 	if botUserID == "" {

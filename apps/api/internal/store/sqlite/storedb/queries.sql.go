@@ -755,7 +755,7 @@ func (q *Queries) GetBotTokenAuth(ctx context.Context, tokenHash string) (GetBot
 }
 
 const getChannel = `-- name: GetChannel :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE id = ?1
 `
@@ -768,6 +768,8 @@ type GetChannelRow struct {
 	Kind             string         `json:"kind"`
 	Template         string         `json:"template"`
 	CodeMode         string         `json:"code_mode"`
+	PlanBody         string         `json:"plan_body"`
+	GoalBody         string         `json:"goal_body"`
 	PullRequestUrl   string         `json:"pull_request_url"`
 	PullRequestTitle string         `json:"pull_request_title"`
 	CreatedAt        string         `json:"created_at"`
@@ -785,6 +787,8 @@ func (q *Queries) GetChannel(ctx context.Context, id string) (GetChannelRow, err
 		&i.Kind,
 		&i.Template,
 		&i.CodeMode,
+		&i.PlanBody,
+		&i.GoalBody,
 		&i.PullRequestUrl,
 		&i.PullRequestTitle,
 		&i.CreatedAt,
@@ -794,7 +798,7 @@ func (q *Queries) GetChannel(ctx context.Context, id string) (GetChannelRow, err
 }
 
 const getChannelByIDAndWorkspace = `-- name: GetChannelByIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE workspace_id = ?1
   AND id = ?2
@@ -813,6 +817,8 @@ type GetChannelByIDAndWorkspaceRow struct {
 	Kind             string         `json:"kind"`
 	Template         string         `json:"template"`
 	CodeMode         string         `json:"code_mode"`
+	PlanBody         string         `json:"plan_body"`
+	GoalBody         string         `json:"goal_body"`
 	PullRequestUrl   string         `json:"pull_request_url"`
 	PullRequestTitle string         `json:"pull_request_title"`
 	CreatedAt        string         `json:"created_at"`
@@ -830,6 +836,8 @@ func (q *Queries) GetChannelByIDAndWorkspace(ctx context.Context, arg GetChannel
 		&i.Kind,
 		&i.Template,
 		&i.CodeMode,
+		&i.PlanBody,
+		&i.GoalBody,
 		&i.PullRequestUrl,
 		&i.PullRequestTitle,
 		&i.CreatedAt,
@@ -839,7 +847,7 @@ func (q *Queries) GetChannelByIDAndWorkspace(ctx context.Context, arg GetChannel
 }
 
 const getChannelByRouteIDAndWorkspace = `-- name: GetChannelByRouteIDAndWorkspace :one
-SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at, archived_at
+SELECT id, COALESCE(route_id, '') AS route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at, archived_at
 FROM channels
 WHERE workspace_id = ?1
   AND route_id = ?2
@@ -858,6 +866,8 @@ type GetChannelByRouteIDAndWorkspaceRow struct {
 	Kind             string         `json:"kind"`
 	Template         string         `json:"template"`
 	CodeMode         string         `json:"code_mode"`
+	PlanBody         string         `json:"plan_body"`
+	GoalBody         string         `json:"goal_body"`
 	PullRequestUrl   string         `json:"pull_request_url"`
 	PullRequestTitle string         `json:"pull_request_title"`
 	CreatedAt        string         `json:"created_at"`
@@ -875,6 +885,8 @@ func (q *Queries) GetChannelByRouteIDAndWorkspace(ctx context.Context, arg GetCh
 		&i.Kind,
 		&i.Template,
 		&i.CodeMode,
+		&i.PlanBody,
+		&i.GoalBody,
 		&i.PullRequestUrl,
 		&i.PullRequestTitle,
 		&i.CreatedAt,
@@ -2378,6 +2390,43 @@ func (q *Queries) LatestEventCursor(ctx context.Context, arg LatestEventCursorPa
 	return cursor, err
 }
 
+const listBotRuntimeProfiles = `-- name: ListBotRuntimeProfiles :many
+SELECT workspace_id, bot_user_id, harness, model, thinking, updated_at
+FROM bot_runtime_profiles
+WHERE workspace_id = ?1
+ORDER BY bot_user_id
+`
+
+func (q *Queries) ListBotRuntimeProfiles(ctx context.Context, workspaceID string) ([]BotRuntimeProfile, error) {
+	rows, err := q.db.QueryContext(ctx, listBotRuntimeProfiles, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BotRuntimeProfile
+	for rows.Next() {
+		var i BotRuntimeProfile
+		if err := rows.Scan(
+			&i.WorkspaceID,
+			&i.BotUserID,
+			&i.Harness,
+			&i.Model,
+			&i.Thinking,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBotsOwnedBy = `-- name: ListBotsOwnedBy :many
 SELECT
   u.id,
@@ -2457,7 +2506,7 @@ func (q *Queries) ListBotsOwnedBy(ctx context.Context, ownerUserID sql.NullStrin
 }
 
 const listChannels = `-- name: ListChannels :many
-SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.pull_request_url, c.pull_request_title, c.created_at, c.archived_at,
+SELECT c.id, COALESCE(c.route_id, '') AS route_id, c.workspace_id, c.name, c.kind, c.template, c.code_mode, c.plan_body, c.goal_body, c.pull_request_url, c.pull_request_title, c.created_at, c.archived_at,
        CAST(COALESCE((SELECT MAX(channel_seq) FROM messages WHERE channel_id = c.id AND parent_message_id IS NULL), 0) AS INTEGER) AS last_seq,
        CAST(COALESCE((SELECT cr.last_read_seq FROM channel_reads cr WHERE cr.channel_id = c.id AND cr.user_id = ?1), 0) AS INTEGER) AS last_read_seq,
        CAST(COALESCE((
@@ -2487,6 +2536,8 @@ type ListChannelsRow struct {
 	Kind             string         `json:"kind"`
 	Template         string         `json:"template"`
 	CodeMode         string         `json:"code_mode"`
+	PlanBody         string         `json:"plan_body"`
+	GoalBody         string         `json:"goal_body"`
 	PullRequestUrl   string         `json:"pull_request_url"`
 	PullRequestTitle string         `json:"pull_request_title"`
 	CreatedAt        string         `json:"created_at"`
@@ -2513,6 +2564,8 @@ func (q *Queries) ListChannels(ctx context.Context, arg ListChannelsParams) ([]L
 			&i.Kind,
 			&i.Template,
 			&i.CodeMode,
+			&i.PlanBody,
+			&i.GoalBody,
 			&i.PullRequestUrl,
 			&i.PullRequestTitle,
 			&i.CreatedAt,
@@ -3662,6 +3715,24 @@ func (q *Queries) UpdateChannel(ctx context.Context, arg UpdateChannelParams) er
 	return err
 }
 
+const updateChannelWorkspaceNotes = `-- name: UpdateChannelWorkspaceNotes :exec
+UPDATE channels
+SET plan_body = ?1,
+    goal_body = ?2
+WHERE id = ?3
+`
+
+type UpdateChannelWorkspaceNotesParams struct {
+	PlanBody string `json:"plan_body"`
+	GoalBody string `json:"goal_body"`
+	ID       string `json:"id"`
+}
+
+func (q *Queries) UpdateChannelWorkspaceNotes(ctx context.Context, arg UpdateChannelWorkspaceNotesParams) error {
+	_, err := q.db.ExecContext(ctx, updateChannelWorkspaceNotes, arg.PlanBody, arg.GoalBody, arg.ID)
+	return err
+}
+
 const updateMessageBody = `-- name: UpdateMessageBody :execrows
 UPDATE messages
 SET body = ?1,
@@ -3832,6 +3903,37 @@ func (q *Queries) UploadHasOtherDirectMessageAttachment(ctx context.Context, arg
 	var has_other_direct_message_attachment bool
 	err := row.Scan(&has_other_direct_message_attachment)
 	return has_other_direct_message_attachment, err
+}
+
+const upsertBotRuntimeProfile = `-- name: UpsertBotRuntimeProfile :exec
+INSERT INTO bot_runtime_profiles (workspace_id, bot_user_id, harness, model, thinking, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+ON CONFLICT (workspace_id, bot_user_id) DO UPDATE SET
+  harness = excluded.harness,
+  model = excluded.model,
+  thinking = excluded.thinking,
+  updated_at = excluded.updated_at
+`
+
+type UpsertBotRuntimeProfileParams struct {
+	WorkspaceID string `json:"workspace_id"`
+	BotUserID   string `json:"bot_user_id"`
+	Harness     string `json:"harness"`
+	Model       string `json:"model"`
+	Thinking    string `json:"thinking"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
+func (q *Queries) UpsertBotRuntimeProfile(ctx context.Context, arg UpsertBotRuntimeProfileParams) error {
+	_, err := q.db.ExecContext(ctx, upsertBotRuntimeProfile,
+		arg.WorkspaceID,
+		arg.BotUserID,
+		arg.Harness,
+		arg.Model,
+		arg.Thinking,
+		arg.UpdatedAt,
+	)
+	return err
 }
 
 const upsertChannelRead = `-- name: UpsertChannelRead :execrows

@@ -18,6 +18,7 @@ func TestLoadDefaultsEnvAndFile(t *testing.T) {
 	t.Setenv("CLICKCLACK_DEV_BOOTSTRAP", "false")
 	t.Setenv("CLICKCLACK_GITHUB_CLIENT_ID", "client")
 	t.Setenv("CLICKCLACK_GITHUB_CLIENT_SECRET", "secret")
+	t.Setenv("CLICKCLACK_GITHUB_API_TOKEN", "api-token")
 	t.Setenv("CLICKCLACK_GITHUB_ALLOWED_ORG", "openclaw")
 	t.Setenv("CLICKCLACK_GITHUB_MODERATOR_ORG", "openclaw")
 	t.Setenv("CLICKCLACK_PUSHOVER_API_TOKEN", "app-token")
@@ -29,7 +30,7 @@ func TestLoadDefaultsEnvAndFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Addr != ":9000" || cfg.Data != "/tmp/clickclack" || cfg.DB != "sqlite:///tmp/clickclack.db" || cfg.Uploads != "r2://clickclack-uploads/prod" || cfg.Environment != "fakeco" || !cfg.MetricsEnabled || cfg.PublicURL != "https://clickclack.test" || cfg.CookieNamespace != "prod-2" || cfg.DevBootstrap || cfg.GitHubClientID != "client" || cfg.GitHubClientSecret != "secret" || cfg.GitHubAllowedOrg != "openclaw" || cfg.GitHubModeratorOrg != "openclaw" || cfg.PushoverAPIToken != "app-token" || cfg.R2AccountID != "account" || cfg.R2AccessKeyID != "access" || cfg.R2SecretAccessKey != "secret-access" || cfg.R2Endpoint != "https://r2.example.com" {
+	if cfg.Addr != ":9000" || cfg.Data != "/tmp/clickclack" || cfg.DB != "sqlite:///tmp/clickclack.db" || cfg.Uploads != "r2://clickclack-uploads/prod" || cfg.Environment != "fakeco" || !cfg.MetricsEnabled || cfg.PublicURL != "https://clickclack.test" || cfg.CookieNamespace != "prod-2" || cfg.DevBootstrap || cfg.GitHubClientID != "client" || cfg.GitHubClientSecret != "secret" || cfg.GitHubAPIToken != "api-token" || cfg.GitHubAllowedOrg != "openclaw" || cfg.GitHubModeratorOrg != "openclaw" || cfg.PushoverAPIToken != "app-token" || cfg.R2AccountID != "account" || cfg.R2AccessKeyID != "access" || cfg.R2SecretAccessKey != "secret-access" || cfg.R2Endpoint != "https://r2.example.com" {
 		t.Fatalf("unexpected env config: %#v", cfg)
 	}
 
@@ -56,6 +57,7 @@ func TestLoadDefaultsEnvAndFile(t *testing.T) {
 	t.Setenv("CLICKCLACK_DEV_BOOTSTRAP", "")
 	t.Setenv("CLICKCLACK_GITHUB_CLIENT_ID", "")
 	t.Setenv("CLICKCLACK_GITHUB_CLIENT_SECRET", "")
+	t.Setenv("CLICKCLACK_GITHUB_API_TOKEN", "")
 	t.Setenv("CLICKCLACK_GITHUB_ALLOWED_ORG", "")
 	t.Setenv("CLICKCLACK_GITHUB_MODERATOR_ORG", "")
 	t.Setenv("CLICKCLACK_PUSHOVER_API_TOKEN", "")

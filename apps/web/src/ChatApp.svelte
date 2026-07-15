@@ -95,6 +95,9 @@
   let channelCreateStatus = "";
   let codeModeUpdating = false;
   let codeModeError = "";
+  let codeRailCollapsed = false;
+  let codeNotesUpdating = false;
+  let codeNotesError = "";
   let directMemberID = "";
   let searchQuery = "";
   let searchResults: SearchResult[] = [];
@@ -927,6 +930,28 @@
       codeModeError = "Could not update the code workspace mode.";
     } finally {
       codeModeUpdating = false;
+    }
+  }
+
+  async function updateCodeWorkspaceNotes(planBody: string, goalBody: string): Promise<boolean> {
+    if (!selectedChannel || selectedChannel.template !== "code" || codeNotesUpdating) return false;
+    codeNotesUpdating = true;
+    codeNotesError = "";
+    try {
+      const data = await api<{ channel: Channel }>(
+        `/api/channels/${selectedChannel.id}/workspace-notes`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ plan_body: planBody, goal_body: goalBody }),
+        },
+      );
+      channels = channels.map((channel) => channel.id === data.channel.id ? data.channel : channel);
+      return true;
+    } catch {
+      codeNotesError = "Could not save the plan and goal.";
+      return false;
+    } finally {
+      codeNotesUpdating = false;
     }
   }
 
@@ -3000,6 +3025,7 @@
     <div
       class="conversation-surface"
       class:has-code-rail={selectedChannel?.template === "code"}
+      class:code-rail-collapsed={selectedChannel?.template === "code" && codeRailCollapsed}
     >
       <div class="conversation-column">
 
@@ -3092,10 +3118,16 @@
         <CodeWorkspaceRail
           canManage={canManageChannel}
           agentActive={agentResponding}
+          collapsed={codeRailCollapsed}
           updating={codeModeUpdating}
           error={codeModeError}
+          notesUpdating={codeNotesUpdating}
+          notesError={codeNotesError}
           agents={codeRoomAgents}
+          people={workspacePeople}
           onMode={(mode) => void updateCodeMode(mode)}
+          onCollapsed={(collapsed) => (codeRailCollapsed = collapsed)}
+          onNotes={updateCodeWorkspaceNotes}
           channel={selectedChannel}
         />
       {/if}

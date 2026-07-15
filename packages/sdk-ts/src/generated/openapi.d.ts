@@ -343,6 +343,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/workspaces/{workspace_id}/agent-profiles": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["listAgentProfiles"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/workspaces/{workspace_id}/bots/{bot_user_id}/runtime-profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["updateBotRuntimeProfile"];
+    trace?: never;
+  };
   "/api/workspaces/{workspace_id}/bots/{bot_user_id}/membership": {
     parameters: {
       query?: never;
@@ -581,6 +613,38 @@ export interface paths {
     options?: never;
     head?: never;
     patch: operations["updateChannel"];
+    trace?: never;
+  };
+  "/api/channels/{channel_id}/workspace-notes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["updateCodeWorkspaceNotes"];
+    trace?: never;
+  };
+  "/api/channels/{channel_id}/pull-request-status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["getPullRequestStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/channels/{channel_id}/messages": {
@@ -1027,6 +1091,20 @@ export interface components {
       bot: components["schemas"]["User"];
       tokens: components["schemas"]["BotToken"][];
     };
+    BotRuntimeProfile: {
+      workspace_id: string;
+      bot_user_id: string;
+      harness: string;
+      model: string;
+      thinking: string;
+      /** Format: date-time */
+      updated_at: string;
+    };
+    UpdateBotRuntimeProfileRequest: {
+      harness: string;
+      model: string;
+      thinking: string;
+    };
     CreateBotResponse: {
       bot: components["schemas"]["User"];
       bot_token: components["schemas"]["BotToken"];
@@ -1236,6 +1314,24 @@ export interface components {
       pull_request_title?: string;
       archived?: boolean;
     };
+    UpdateCodeWorkspaceNotesRequest: {
+      plan_body?: string;
+      goal_body?: string;
+    };
+    PullRequestStatus: {
+      /** @enum {string} */
+      state: "draft" | "open" | "closed" | "merged";
+      /** @enum {string} */
+      ci_state: "passing" | "failing" | "pending" | "not_reported" | "unknown";
+      checks_total: number;
+      /** @enum {string} */
+      review_state: "pending" | "approved" | "changes_requested";
+      last_reply_author: string;
+      /** Format: date-time */
+      last_reply_at: string;
+      /** Format: date-time */
+      updated_at: string;
+    };
     CreateMessageRequest: {
       body: string;
       /**
@@ -1366,6 +1462,10 @@ export interface components {
       template: "chat" | "code";
       /** @enum {string} */
       code_mode: "single_user" | "multi_user";
+      /** @description Operator and owner-agent editable freehand implementation plan. */
+      plan_body: string;
+      /** @description Operator and owner-agent editable freehand outcome statement. */
+      goal_body: string;
       /** @description Primary GitHub pull request for this code channel, or an empty string when none is linked. */
       pull_request_url: string;
       /** @description Human-readable title for the primary pull request, or an empty string when none is linked. */
@@ -2398,6 +2498,90 @@ export interface operations {
       };
     };
   };
+  listAgentProfiles: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workspace_id: components["parameters"]["workspace_id"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Runtime profiles reported by workspace bots */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            profiles: components["schemas"]["BotRuntimeProfile"][];
+          };
+        };
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Channel read access to the workspace required */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  updateBotRuntimeProfile: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workspace_id: components["parameters"]["workspace_id"];
+        bot_user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateBotRuntimeProfileRequest"];
+      };
+    };
+    responses: {
+      /** @description Updated runtime profile */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid or incomplete runtime profile */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bot owner, workspace owner, or matching bot permission required */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   removeBotFromWorkspace: {
     parameters: {
       query?: never;
@@ -2905,6 +3089,103 @@ export interface operations {
     responses: {
       /** @description Updated channel */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  updateCodeWorkspaceNotes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        channel_id: components["parameters"]["channel_id"];
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateCodeWorkspaceNotesRequest"];
+      };
+    };
+    responses: {
+      /** @description Updated freehand code workspace plan and goal */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid payload or channel presentation */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Workspace owner or owner-scoped bot permission required */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getPullRequestStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        channel_id: components["parameters"]["channel_id"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Live status for the linked GitHub pull request */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            pull_request: components["schemas"]["PullRequestStatus"];
+          };
+        };
+      };
+      /** @description Channel has no valid linked GitHub pull request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Channel read access required */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description GitHub status is temporarily unavailable */
+      502: {
         headers: {
           [name: string]: unknown;
         };

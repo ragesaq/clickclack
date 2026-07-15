@@ -45,7 +45,9 @@ test("code channels switch between single-user and multi-user rooms durably", as
 
   const workspace = page.getByRole("complementary", { name: "Code workspace" });
   await expect(workspace).toBeVisible();
-  await expect(workspace.getByRole("heading", { name: "Shared project room" })).toBeVisible();
+  await expect(workspace.getByRole("heading", { name: `#${channelName}` })).toBeVisible();
+  await workspace.getByRole("button", { name: "Channel settings" }).click();
+  await expect(workspace.getByText("Multi-user project room", { exact: true })).toBeVisible();
   await expect(workspace.getByRole("button", { name: "Multi-user" })).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -66,7 +68,9 @@ test("code channels switch between single-user and multi-user rooms durably", as
 
   const meResponse = await page.request.get("/api/me");
   expect(meResponse.ok()).toBe(true);
-  const { user: currentUser } = (await meResponse.json()) as { user: { id: string } };
+  const { user: currentUser } = (await meResponse.json()) as {
+    user: { id: string; display_name: string };
+  };
   const botResponse = await page.request.post(`/api/workspaces/${isolatedWorkspace.id}/bots`, {
     data: {
       owner_user_id: currentUser.id,
@@ -77,6 +81,19 @@ test("code channels switch between single-user and multi-user rooms durably", as
     },
   });
   expect(botResponse.ok()).toBe(true);
+  const { bot } = (await botResponse.json()) as { bot: { id: string } };
+  const incompleteRuntimeProfileResponse = await page.request.patch(
+    `/api/workspaces/${isolatedWorkspace.id}/bots/${bot.id}/runtime-profile`,
+    { data: {} },
+  );
+  expect(incompleteRuntimeProfileResponse.status()).toBe(400);
+  const runtimeProfileResponse = await page.request.patch(
+    `/api/workspaces/${isolatedWorkspace.id}/bots/${bot.id}/runtime-profile`,
+    {
+      data: { harness: "OpenClaw", model: "GPT-5.6-Sol", thinking: "high" },
+    },
+  );
+  expect(runtimeProfileResponse.ok()).toBe(true);
   const pullRequestResponse = await page.request.patch(`/api/channels/${createBody.channel.id}`, {
     data: {
       pull_request_url: "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1",
@@ -85,18 +102,68 @@ test("code channels switch between single-user and multi-user rooms durably", as
   });
   expect(pullRequestResponse.ok()).toBe(true);
 
+  await page.route(
+    `**/api/channels/${createBody.channel.id}/pull-request-status`,
+    async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          pull_request: {
+            state: "open",
+            ci_state: "passing",
+            checks_total: 4,
+            review_state: "approved",
+            last_reply_author: "caliper",
+            last_reply_at: "2026-07-15T01:20:00Z",
+            updated_at: "2026-07-15T01:20:00Z",
+          },
+        }),
+      });
+    },
+  );
+
   await page.reload();
   await waitForAppReady(page);
-  await expect(page.getByRole("heading", { name: "Personal agent room" })).toBeVisible();
+  await workspace.getByRole("button", { name: "Channel settings" }).click();
+  await expect(workspace.getByText("Personal agent room", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Single user" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
   await expect(workspace.getByText("Chisel", { exact: true })).toBeVisible();
+  await expect(workspace.getByText("OpenClaw", { exact: true })).toBeVisible();
+  await expect(workspace.getByText("GPT-5.6-Sol", { exact: true })).toBeVisible();
+  await expect(workspace.getByText("high", { exact: true })).toBeVisible();
+  await expect(workspace.getByText(currentUser.display_name, { exact: true })).toBeVisible();
   await expect(workspace.getByRole("link", { name: "Open ClickClack for Codex" })).toHaveAttribute(
     "href",
     "https://github.com/PsiClawOps/clickclack-codex-plugin/pull/1",
   );
+  await expect(workspace.getByText("Passing · 4 checks", { exact: true })).toBeVisible();
+  await expect(workspace.getByText("Approved", { exact: true })).toBeVisible();
+  await expect(workspace.getByText(/@caliper/)).toBeVisible();
+
+  await workspace.getByRole("button", { name: "Write freehand" }).click();
+  await workspace.getByLabel("Goal").fill("Ship a durable code-room workflow");
+  await workspace.getByLabel("Plan").fill("Inspect the state\nPatch the rail\nVerify the result");
+  const notesUpdated = page.waitForResponse(
+    (response) =>
+      response.request().method() === "PATCH" &&
+      response.url().endsWith(`/api/channels/${createBody.channel.id}/workspace-notes`),
+  );
+  await workspace.getByRole("button", { name: "Save" }).click();
+  expect((await notesUpdated).ok()).toBe(true);
+  await expect(
+    workspace.getByText("Ship a durable code-room workflow", { exact: true }),
+  ).toBeVisible();
+  await expect(workspace.getByText(/Patch the rail/)).toBeVisible();
+
+  await workspace.getByRole("button", { name: "Minimize code workspace" }).click();
+  await expect(page.locator(".conversation-surface")).toHaveClass(/code-rail-collapsed/);
+  await expect(workspace.getByRole("button", { name: "Open code workspace" })).toBeVisible();
+  await expect(page.getByLabel("Message body")).toBeVisible();
+  await workspace.getByRole("button", { name: "Open code workspace" }).click();
+  await expect(workspace.getByRole("button", { name: "Minimize code workspace" })).toBeVisible();
 
   for (const viewport of [
     { width: 780, height: 700 },

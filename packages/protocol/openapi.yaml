@@ -514,6 +514,53 @@ paths:
                 $ref: "#/components/schemas/CreateBotResponse"
         "403":
           description: Service bots require a workspace manager. User-owned bots must be created by their owner.
+  /api/workspaces/{workspace_id}/agent-profiles:
+    get:
+      operationId: listAgentProfiles
+      parameters:
+        - $ref: "#/components/parameters/workspace_id"
+      responses:
+        "200":
+          description: Runtime profiles reported by workspace bots
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profiles]
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BotRuntimeProfile"
+        "401":
+          description: Authentication required
+        "403":
+          description: Channel read access to the workspace required
+  /api/workspaces/{workspace_id}/bots/{bot_user_id}/runtime-profile:
+    patch:
+      operationId: updateBotRuntimeProfile
+      parameters:
+        - $ref: "#/components/parameters/workspace_id"
+        - name: bot_user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBotRuntimeProfileRequest"
+      responses:
+        "200":
+          description: Updated runtime profile
+        "400":
+          description: Invalid or incomplete runtime profile
+        "401":
+          description: Authentication required
+        "403":
+          description: Bot owner, workspace owner, or matching bot permission required
   /api/workspaces/{workspace_id}/bots/{bot_user_id}/membership:
     delete:
       operationId: removeBotFromWorkspace
@@ -809,6 +856,50 @@ paths:
       responses:
         "200":
           description: Updated channel
+  /api/channels/{channel_id}/workspace-notes:
+    patch:
+      operationId: updateCodeWorkspaceNotes
+      parameters:
+        - $ref: "#/components/parameters/channel_id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCodeWorkspaceNotesRequest"
+      responses:
+        "200":
+          description: Updated freehand code workspace plan and goal
+        "400":
+          description: Invalid payload or channel presentation
+        "401":
+          description: Authentication required
+        "403":
+          description: Workspace owner or owner-scoped bot permission required
+  /api/channels/{channel_id}/pull-request-status:
+    get:
+      operationId: getPullRequestStatus
+      parameters:
+        - $ref: "#/components/parameters/channel_id"
+      responses:
+        "200":
+          description: Live status for the linked GitHub pull request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pull_request]
+                properties:
+                  pull_request:
+                    $ref: "#/components/schemas/PullRequestStatus"
+        "400":
+          description: Channel has no valid linked GitHub pull request
+        "401":
+          description: Authentication required
+        "403":
+          description: Channel read access required
+        "502":
+          description: GitHub status is temporarily unavailable
   /api/channels/{channel_id}/messages:
     get:
       operationId: listMessages
@@ -1469,6 +1560,36 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BotToken"
+    BotRuntimeProfile:
+      type: object
+      required: [workspace_id, bot_user_id, harness, model, thinking, updated_at]
+      properties:
+        workspace_id:
+          type: string
+        bot_user_id:
+          type: string
+        harness:
+          type: string
+        model:
+          type: string
+        thinking:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+    UpdateBotRuntimeProfileRequest:
+      type: object
+      required: [harness, model, thinking]
+      properties:
+        harness:
+          type: string
+          maxLength: 80
+        model:
+          type: string
+          maxLength: 120
+        thinking:
+          type: string
+          maxLength: 40
     CreateBotResponse:
       type: object
       required: [bot, bot_token]
@@ -1848,6 +1969,40 @@ components:
           description: Human-readable title for the primary pull request. Defaults to owner/repo #number.
         archived:
           type: boolean
+    UpdateCodeWorkspaceNotesRequest:
+      type: object
+      minProperties: 1
+      properties:
+        plan_body:
+          type: string
+          maxLength: 20000
+        goal_body:
+          type: string
+          maxLength: 20000
+    PullRequestStatus:
+      type: object
+      required: [state, ci_state, checks_total, review_state, last_reply_author, last_reply_at, updated_at]
+      properties:
+        state:
+          type: string
+          enum: [draft, open, closed, merged]
+        ci_state:
+          type: string
+          enum: [passing, failing, pending, not_reported, unknown]
+        checks_total:
+          type: integer
+          minimum: 0
+        review_state:
+          type: string
+          enum: [pending, approved, changes_requested]
+        last_reply_author:
+          type: string
+        last_reply_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     CreateMessageRequest:
       type: object
       required: [body]
@@ -2047,7 +2202,7 @@ components:
           format: date-time
     Channel:
       type: object
-      required: [id, route_id, workspace_id, name, kind, template, code_mode, pull_request_url, pull_request_title, created_at]
+      required: [id, route_id, workspace_id, name, kind, template, code_mode, plan_body, goal_body, pull_request_url, pull_request_title, created_at]
       properties:
         id:
           type: string
@@ -2066,6 +2221,12 @@ components:
         code_mode:
           type: string
           enum: [single_user, multi_user]
+        plan_body:
+          type: string
+          description: Operator and owner-agent editable freehand implementation plan.
+        goal_body:
+          type: string
+          description: Operator and owner-agent editable freehand outcome statement.
         pull_request_url:
           type: string
           description: Primary GitHub pull request for this code channel, or an empty string when none is linked.

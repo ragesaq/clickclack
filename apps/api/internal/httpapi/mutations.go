@@ -53,6 +53,45 @@ func (s *Server) updateChannel(w http.ResponseWriter, r *http.Request) {
 	writeResult(w, map[string]any{"channel": channel, "event": event}, err)
 }
 
+func (s *Server) updateCodeWorkspaceNotes(w http.ResponseWriter, r *http.Request) {
+	act, err := s.currentActor(r)
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, err)
+		return
+	}
+	if act.botTokenID != "" {
+		if err := act.requireScope("messages:write"); err != nil {
+			writeError(w, http.StatusForbidden, err)
+			return
+		}
+	} else if err := act.requireScope("channels:write"); err != nil {
+		writeError(w, http.StatusForbidden, err)
+		return
+	}
+	channelID := chi.URLParam(r, "channel_id")
+	if !s.requireBotChannelWorkspace(w, r, act, channelID) {
+		return
+	}
+	var body struct {
+		PlanBody *string `json:"plan_body"`
+		GoalBody *string `json:"goal_body"`
+	}
+	if err := readJSON(w, r, &body); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	channel, event, err := s.store.UpdateCodeWorkspaceNotes(r.Context(), store.UpdateCodeWorkspaceNotesInput{
+		ChannelID:   channelID,
+		ActorUserID: act.user.ID,
+		PlanBody:    body.PlanBody,
+		GoalBody:    body.GoalBody,
+	})
+	if err == nil {
+		s.publishEvent(r.Context(), event)
+	}
+	writeResult(w, map[string]any{"channel": channel, "event": event}, err)
+}
+
 func (s *Server) updateMessage(w http.ResponseWriter, r *http.Request) {
 	act, err := s.currentActor(r)
 	if err != nil {

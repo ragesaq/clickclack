@@ -23,6 +23,7 @@ type Config struct {
 	DevBootstrap       bool   `json:"dev_bootstrap"`
 	GitHubClientID     string `json:"github_client_id"`
 	GitHubClientSecret string `json:"github_client_secret"`
+	GitHubAPIToken     string `json:"github_api_token"`
 	GitHubAllowedOrg   string `json:"github_allowed_org"`
 	GitHubModeratorOrg string `json:"github_moderator_org"`
 	PushoverAPIToken   string `json:"pushover_api_token"`
@@ -93,6 +94,9 @@ func Load(path string) (Config, error) {
 	}
 	if env := os.Getenv("CLICKCLACK_GITHUB_CLIENT_SECRET"); env != "" {
 		cfg.GitHubClientSecret = env
+	}
+	if env := os.Getenv("CLICKCLACK_GITHUB_API_TOKEN"); env != "" {
+		cfg.GitHubAPIToken = env
 	}
 	if env := os.Getenv("CLICKCLACK_GITHUB_ALLOWED_ORG"); env != "" {
 		cfg.GitHubAllowedOrg = env

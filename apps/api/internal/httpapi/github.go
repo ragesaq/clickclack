@@ -23,6 +23,7 @@ import (
 type GitHubOAuthConfig struct {
 	ClientID      string
 	ClientSecret  string
+	APIToken      string
 	PublicURL     string
 	AuthURL       string
 	TokenURL      string

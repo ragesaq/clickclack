@@ -9,6 +9,15 @@ export type User = {
   notification_settings?: NotificationSettings;
 };
 
+export type BotRuntimeProfile = {
+  workspace_id: string;
+  bot_user_id: string;
+  harness: string;
+  model: string;
+  thinking: string;
+  updated_at: string;
+};
+
 export type NotificationSettings = {
   pushover_enabled: boolean;
   pushover_user_key: string;
@@ -32,6 +41,8 @@ export type Channel = {
   kind: string;
   template: "chat" | "code";
   code_mode: "single_user" | "multi_user";
+  plan_body: string;
+  goal_body: string;
   pull_request_url: string;
   pull_request_title: string;
   created_at: string;
@@ -39,6 +50,16 @@ export type Channel = {
   last_seq?: number;
   last_read_seq?: number;
   unread_count?: number;
+};
+
+export type PullRequestStatus = {
+  state: "draft" | "open" | "closed" | "merged";
+  ci_state: "passing" | "failing" | "pending" | "not_reported" | "unknown";
+  checks_total: number;
+  review_state: "pending" | "approved" | "changes_requested";
+  last_reply_author: string;
+  last_reply_at: string;
+  updated_at: string;
 };
 
 // One commentary prose segment inside a coalesced preamble block.

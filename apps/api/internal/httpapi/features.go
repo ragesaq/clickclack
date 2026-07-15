@@ -581,6 +581,71 @@ func (s *Server) listBots(w http.ResponseWriter, r *http.Request) {
 	writeResult(w, map[string]any{"bots": bots}, err)
 }
 
+func (s *Server) listAgentProfiles(w http.ResponseWriter, r *http.Request) {
+	act, err := s.currentActor(r)
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, err)
+		return
+	}
+	if err := act.requireScope("channels:read"); err != nil {
+		writeError(w, http.StatusForbidden, err)
+		return
+	}
+	workspaceID := chi.URLParam(r, "workspace_id")
+	if err := act.requireWorkspace(workspaceID); err != nil {
+		writeError(w, http.StatusForbidden, err)
+		return
+	}
+	profiles, err := s.store.ListBotRuntimeProfiles(r.Context(), workspaceID, act.user.ID)
+	writeResult(w, map[string]any{"profiles": profiles}, err)
+}
+
+func (s *Server) updateBotRuntimeProfile(w http.ResponseWriter, r *http.Request) {
+	act, err := s.currentActor(r)
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, err)
+		return
+	}
+	workspaceID := chi.URLParam(r, "workspace_id")
+	botUserID := chi.URLParam(r, "bot_user_id")
+	if err := act.requireWorkspace(workspaceID); err != nil {
+		writeError(w, http.StatusForbidden, err)
+		return
+	}
+	if act.botTokenID != "" {
+		if act.user.ID != botUserID {
+			writeError(w, http.StatusForbidden, store.ErrBotOwnerRequired)
+			return
+		}
+		if err := act.requireScope("messages:write"); err != nil {
+			writeError(w, http.StatusForbidden, err)
+			return
+		}
+	}
+	var body struct {
+		Harness  *string `json:"harness"`
+		Model    *string `json:"model"`
+		Thinking *string `json:"thinking"`
+	}
+	if err := readJSON(w, r, &body); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	if body.Harness == nil || body.Model == nil || body.Thinking == nil {
+		writeError(w, http.StatusBadRequest, store.ErrInvalidChannelPresentation)
+		return
+	}
+	profile, err := s.store.UpsertBotRuntimeProfile(r.Context(), store.UpsertBotRuntimeProfileInput{
+		WorkspaceID: workspaceID,
+		BotUserID:   botUserID,
+		ActorUserID: act.user.ID,
+		Harness:     *body.Harness,
+		Model:       *body.Model,
+		Thinking:    *body.Thinking,
+	})
+	writeResult(w, map[string]any{"profile": profile}, err)
+}
+
 func (s *Server) listMyBots(w http.ResponseWriter, r *http.Request) {
 	act, err := s.currentActor(r)
 	if err != nil {
