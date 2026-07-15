@@ -1,0 +1,41 @@
+{
+  "client": "openclaw",
+  "createdAt": "2026-07-15T03:14:54+00:00",
+  "decision": "pass",
+  "familyRelation": "self",
+  "head": "a160d3a42174b6fe1104f128d766ecdfb918f3f6",
+  "installProfile": "full-spectrum",
+  "mode": "patch-review",
+  "model": "openai/gpt-5.6-sol",
+  "operatorNextAction": "no-action",
+  "pathsSha256": "166e1280f073b1f0eeaa11ca85e3b594befddddf10dd0c81c98a6e762b0f38b5",
+  "reason": "No material defects in the low-churn WebChat parity integration; focused preamble coverage passes.",
+  "repo": "clickclack-code-mode",
+  "requiresRobustArtifact": false,
+  "routedTo": [
+    "none"
+  ],
+  "schemaVersion": "hyperreview-reflex-decision/v1",
+  "skillVersion": "0.3.4",
+  "stagedPaths": [
+    ".hyperreview/patch-review-2026-07-15T03-14-25Z/summary.md",
+    "apps/api/internal/webassets/dist/200.html",
+    "apps/api/internal/webassets/dist/_app/immutable/assets/0.Be6XHM87.css",
+    "apps/api/internal/webassets/dist/_app/immutable/chunks/BzFBpz_j.js",
+    "apps/api/internal/webassets/dist/_app/immutable/entry/app.ltIV6N-t.js",
+    "apps/api/internal/webassets/dist/_app/immutable/nodes/0.IGoB33Wy.js",
+    "apps/api/internal/webassets/dist/_app/immutable/nodes/10.ifcU5jbV.js",
+    "apps/api/internal/webassets/dist/_app/immutable/nodes/3.DPBpbCTQ.js",
+    "apps/api/internal/webassets/dist/_app/immutable/nodes/4.vrLgGEft.js",
+    "apps/api/internal/webassets/dist/_app/immutable/nodes/5.QKxhkwiy.js",
+    "apps/api/internal/webassets/dist/index.html",
+    "apps/api/internal/webassets/dist/service-worker.js",
+    "apps/web/src/components/messages/MessageRow.svelte",
+    "apps/web/src/components/messages/PreambleBlock.svelte",
+    "apps/web/src/styles/messages.css",
+    "tests/e2e/chat.spec.ts"
+  ],
+  "stagedTree": "8d5e3e1389456d5e6230b01d5dbf7208e4ac2d50",
+  "thinking": "high",
+  "tier": "light"
+}
