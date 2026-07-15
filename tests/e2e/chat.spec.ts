@@ -838,6 +838,9 @@ test("aligns self and other messages independently", async ({ page }) => {
     .toBe(true);
 
   const preamble = page.getByLabel("Agent preamble");
+  await expect(preamble.getByText("Checking aligned agent activity.")).toBeVisible();
+  await preamble.getByRole("button", { name: "Hide preamble" }).click();
+  await expect(preamble.getByText("Checking aligned agent activity.")).toBeHidden();
   await preamble.getByRole("button", { name: "Show preamble" }).click();
   await expect(preamble.getByText("Checking aligned agent activity.")).toBeVisible();
   await preamble.getByRole("button", { name: /bash inspect alignment/ }).click();

@@ -9,19 +9,11 @@
 
   let { block }: Props = $props();
 
-  // Block lifecycle: while the turn is live (final === false) the block opens
-  // expanded so the operator watches narration stream in. Once the turn ends
-  // (final === true) it collapses to a single line they can re-expand. The
-  // operator's manual toggle wins for the rest of the session via preambleOpen,
-  // but a state flip (live -> final) re-applies the default once.
+  // Agent activity is visible by default for both live and completed turns.
+  // This keeps the durable conversation at parity with OpenClaw WebChat: a
+  // final answer must not hide the commentary and tool timeline that produced
+  // it. Operators can still collapse an individual preamble on demand.
   let preambleOpen = $state(true);
-  let lastFinal = $state<boolean | undefined>(undefined);
-  $effect(() => {
-    if (lastFinal === undefined || block.final !== lastFinal) {
-      lastFinal = block.final;
-      preambleOpen = !block.final;
-    }
-  });
 
   // Per-tool expansion: every tool row renders collapsed to a one-line summary
   // (glyph + action + tool name + truncated detail) and expands on click to
