@@ -63,14 +63,16 @@
   // (incrementing commentary + compact tool sub-items, open while live and
   // auto-collapsed on completion) instead of the final-answer treatment.
   let preambleBlock = $derived(message.preamble_block);
-  // Preamble/answer separation. Within an agent message group the synthetic
+  // Preamble/answer chain. Within an agent message group the synthetic
   // preamble row is immediately followed by the same author's final answer
   // (coalesceAgentActivity anchors the block at the turn, ordinary messages
-  // pass through), so within-group adjacency identifies the answer that follows
-  // a preamble. That answer keeps its own full delivery bubble; .after-preamble
-  // adds a top margin plus the indigo bubble styling so it sits as a distinct
-  // unit below the amber preamble card, never fused into it.
+  // pass through), so within-group adjacency identifies the two halves of one
+  // outlined chain. The completed preamble becomes the amber expandable cap;
+  // the final response expands the same bubble below it.
   let followsPreamble = $derived(Boolean(previousMessage?.preamble_block) && !preambleBlock);
+  let precedesFinalMessage = $derived(
+    Boolean(preambleBlock) && Boolean(nextMessage) && !nextMessage?.preamble_block,
+  );
   let threadReplyCount = $derived(message.thread_state?.reply_count || 0);
   let hasThreadReplies = $derived(threadReplyCount > 0);
   let threadTime = $derived(threadActivityTime(message));
@@ -111,6 +113,8 @@
   class:is-deleted={isDeleted}
   class:is-preamble={Boolean(preambleBlock)}
   class:is-preamble-live={preambleBlock?.final === false}
+  class:is-preamble-complete={preambleBlock?.final === true}
+  class:before-final-message={precedesFinalMessage}
   class:after-preamble={followsPreamble}
   class:can-open-thread={canOpenThread}
   data-message-id={message.id}

@@ -540,6 +540,51 @@
   background: var(--hover);
 }
 
+/* ClickGlass message language: every human and agent message has a visible
+   outline bubble. Agent chains use the full content column; human messages
+   shrink to their content so short replies remain compact. */
+.message-group .group-body {
+  width: 100%;
+}
+
+.message-group .message-row {
+  margin-left: 0;
+  padding: 0;
+}
+
+.message-group .message-row:not(:first-child) {
+  margin-top: 4px;
+}
+
+.message-group .message-content {
+  position: relative;
+  width: fit-content;
+  max-width: min(96%, 1100px);
+  margin-top: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--panel-2);
+}
+
+.message-group.is-agent .message-content {
+  width: 96%;
+  max-width: 1100px;
+  background: var(--delivery-accent-soft);
+  border-color: color-mix(in srgb, var(--delivery-accent) 28%, var(--line-strong));
+  border-left: 3px solid color-mix(in srgb, var(--delivery-accent) 62%, transparent);
+  border-bottom-left-radius: 4px;
+}
+
+.message-group.is-self .message-content {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-2));
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+}
+
+.message-group:not(.is-self):not(.is-agent) .message-content {
+  border-bottom-left-radius: 4px;
+}
+
 .avatar {
   width: 38px;
   height: 38px;
@@ -687,62 +732,43 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Coalesced agent preamble block: one block per agent turn, interleaving
-   commentary prose with individually collapsed tool-call rows in arrival
-   order. The block stays open while work is active, then auto-collapses when
-   the final answer lands while remaining manually expandable. Theme-tied to
-   --activity-accent (amber on both themes); the wash is deliberately faint so
-   the block reads as secondary to the final answer, which renders as a clearly
-   separate ordinary message below it.
-
-   Bubble language: tinted keycaps. Each bubble is a full hairline border in
-   its accent mix plus a hard tinted under-edge (the keycap shadow) — no
-   gutter rails; the wash + under-edge carry the semantics. */
+/* Coalesced agent preamble block: commentary and tool calls stay in arrival
+   order inside one amber chain cap. It grows as a normal outlined bubble while
+   live, then collapses and fuses to the final response exactly like ClickGlass. */
 .message-row.is-preamble {
-  /* Streaming/growing phase: the row itself stays transparent; the yellow wash
-     lives on the inline content bubble below so it reads like a message,
-     constrained to the content column instead of bleeding edge to edge across
-     the avatar gutter and full row width. */
   background: transparent;
-  /* Breathing room before the separate final-answer message below. */
-  margin-bottom: 6px;
-  padding-top: 4px;
-  padding-bottom: 4px;
 }
 
-/* Every agent preamble renders as one self-contained rounded card (amber
-   working-log wash + keycap under-edge), whether it is still live or already
-   paired with a final answer. The card is constrained to the content column so
-   the streaming/growing phase reads like a message, not a full-bleed banner.
-   The final answer that follows is a separate ordinary chat bubble with its
-   own full boundary and spacing: the two are never fused into a single card. */
-.message-row.is-preamble .message-content {
-  padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--activity-accent) 20%, transparent);
-  border-radius: var(--radius-lg);
-  background: var(--activity-accent-soft);
-  box-shadow: 0 2px 0 color-mix(in srgb, var(--activity-accent) 14%, transparent);
+.message-group.is-agent .message-row.is-preamble .message-content {
+  background: color-mix(in srgb, var(--activity-accent) 16%, var(--panel-2));
+  border-color: color-mix(in srgb, var(--activity-accent) 34%, var(--line-strong));
+  border-left: 3px solid color-mix(in srgb, var(--activity-accent) 82%, transparent);
+  border-bottom-left-radius: 4px;
 }
 
-/* The final answer following a preamble is a normal, self-contained delivery
-   bubble. Keep a clear top margin so it sits as a distinct unit below the amber
-   card rather than continuing it; combined with the preamble's own
-   margin-bottom this gives each its own boundary and breathing room. */
-.message-row.after-preamble {
-  margin-top: 2px;
+/* A completed preamble becomes the compact yellow cap of the response chain.
+   Manual expansion reveals the retained commentary/tools inside the same cap. */
+.message-row.is-preamble-complete .message-content {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  background: color-mix(in srgb, var(--activity-accent) 22%, var(--panel-2));
 }
 
-/* Every ordinary agent response keeps the full indigo delivery-bubble type,
-   even when an intervening durable row means it is not adjacent to a preamble.
-   The wash, complete hairline border, fully rounded corners, padding, and
-   keycap under-edge preserve visual continuity without fusing activity and
-   response into one card. */
-.message-group.is-agent .message-row:not(.is-preamble) .message-content {
-  padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--delivery-accent) 20%, transparent);
-  border-radius: var(--radius-lg);
-  background: var(--delivery-accent-soft);
-  box-shadow: 0 2px 0 color-mix(in srgb, var(--delivery-accent) 14%, transparent);
+/* Same-turn preamble + final answer expand one outlined bubble. The -1px seam
+   overlaps their borders; square inner corners preserve one continuous chain
+   while the amber and indigo fills keep work separate from delivery. */
+.message-group .message-row.before-final-message + .message-row.after-preamble {
+  margin-top: -1px;
+}
+
+.message-group.is-agent .message-row.before-final-message .message-content {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.message-group.is-agent .message-row.after-preamble .message-content {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 /* The current user and every other participant have independent alignment

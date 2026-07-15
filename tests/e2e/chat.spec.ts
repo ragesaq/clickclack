@@ -488,6 +488,12 @@ test("coalesces durable agent activity and applies activity preferences", async 
   for (const data of [
     { body: "Checking the deployment boundary.", kind: "agent_commentary", turn_id: turnId },
     { body: "**bash inspect**\n\nvalidated local target", kind: "agent_tool", turn_id: turnId },
+    {
+      body: "Commentary after the first tool remains in sequence.",
+      kind: "agent_commentary",
+      turn_id: turnId,
+    },
+    { body: "**read verify**\n\nconfirmed final input", kind: "agent_tool", turn_id: turnId },
     { body: "Deployment boundary is healthy." },
   ]) {
     const response = await page.request.post(`/api/channels/${channel.id}/messages`, {
@@ -534,11 +540,15 @@ test("coalesces durable agent activity and applies activity preferences", async 
   await expect(preamble.getByText("bash")).toBeVisible();
   await preamble.getByRole("button", { name: /bash/ }).click();
   await expect(preamble.getByText("validated local target")).toBeVisible();
+  const preambleItems = preamble.locator(".preamble-flow > *");
+  await expect(preambleItems).toHaveCount(4);
+  await expect(preambleItems.nth(0)).toContainText("Checking the deployment boundary.");
+  await expect(preambleItems.nth(1)).toContainText("bash");
+  await expect(preambleItems.nth(2)).toContainText("Commentary after the first tool");
+  await expect(preambleItems.nth(3)).toContainText("read");
 
-  // The final answer following a preamble is its own self-contained delivery
-  // bubble, never fused into the amber preamble card: a full border on all four
-  // sides (top AND bottom, so no flat seam), fully rounded corners (top AND
-  // bottom radius), padding, and a wash background.
+  // ClickGlass chain contract: the completed amber preamble is the expandable
+  // top cap and the final response expands the same outlined bubble below it.
   const answerRow = page.locator(".message-row.after-preamble", {
     has: page.getByText("Deployment boundary is healthy."),
   });
@@ -556,11 +566,33 @@ test("coalesces durable agent activity and applies activity preferences", async 
   });
   expect(bubbleStyle.borderTop).toBeGreaterThan(0);
   expect(bubbleStyle.borderBottom).toBeGreaterThan(0);
-  expect(bubbleStyle.topLeftRadius).toBeGreaterThan(0);
+  expect(bubbleStyle.topLeftRadius).toBe(0);
   expect(bubbleStyle.bottomLeftRadius).toBeGreaterThan(0);
   expect(bubbleStyle.paddingTop).toBeGreaterThan(0);
   expect(bubbleStyle.background).not.toBe("rgba(0, 0, 0, 0)");
   expect(bubbleStyle.background).not.toBe("transparent");
+  const chainGeometry = await preamble
+    .locator(
+      "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' message-row ')][1]",
+    )
+    .evaluate((capRow) => {
+      const cap = capRow.querySelector<HTMLElement>(".message-content");
+      const answer = capRow.nextElementSibling?.querySelector<HTMLElement>(".message-content");
+      if (!cap || !answer) return null;
+      const capRect = cap.getBoundingClientRect();
+      const answerRect = answer.getBoundingClientRect();
+      const capStyle = getComputedStyle(cap);
+      return {
+        sameLeft: Math.abs(capRect.left - answerRect.left) < 1,
+        sameRight: Math.abs(capRect.right - answerRect.right) < 1,
+        capTopRadius: parseFloat(capStyle.borderTopLeftRadius),
+        capBottomRadius: parseFloat(capStyle.borderBottomLeftRadius),
+      };
+    });
+  expect(chainGeometry?.sameLeft).toBe(true);
+  expect(chainGeometry?.sameRight).toBe(true);
+  expect(chainGeometry?.capTopRadius).toBeGreaterThan(0);
+  expect(chainGeometry?.capBottomRadius).toBe(0);
 
   // A live turn is one synthetic row anchored at its first activity message.
   // Later same-turn rows grow that existing virtual item without changing the
@@ -859,6 +891,25 @@ test("aligns self and other messages independently", async ({ page }) => {
   await expectLayout("right", "right");
 
   await settings.getByRole("button", { name: "Close" }).click();
+  for (const body of [selfMessage, humanMessage, agentMessage]) {
+    const outline = await page
+      .locator(".message-row", { has: page.getByText(body, { exact: true }) })
+      .locator(".message-content")
+      .evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          borderTop: parseFloat(style.borderTopWidth),
+          radius: Math.max(
+            parseFloat(style.borderTopLeftRadius),
+            parseFloat(style.borderTopRightRadius),
+            parseFloat(style.borderBottomLeftRadius),
+            parseFloat(style.borderBottomRightRadius),
+          ),
+        };
+      });
+    expect(outline.borderTop).toBeGreaterThan(0);
+    expect(outline.radius).toBeGreaterThan(0);
+  }
   const selfGroup = page.locator(".message-group", {
     has: page.getByText(selfMessage, { exact: true }),
   });
@@ -880,6 +931,8 @@ test("aligns self and other messages independently", async ({ page }) => {
     .toBe(true);
 
   const preamble = page.getByLabel("Agent preamble");
+  await expect(preamble.getByText("Checking aligned agent activity.")).toBeHidden();
+  await preamble.getByRole("button", { name: "Show preamble" }).click();
   await expect(preamble.getByText("Checking aligned agent activity.")).toBeVisible();
   await preamble.getByRole("button", { name: "Hide preamble" }).click();
   await expect(preamble.getByText("Checking aligned agent activity.")).toBeHidden();
