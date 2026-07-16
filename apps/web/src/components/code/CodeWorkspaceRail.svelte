@@ -99,6 +99,12 @@
     return owner?.display_name || owner?.handle || "Owner unavailable";
   }
 
+  function harnessLabel(profile: BotRuntimeProfile | undefined): string {
+    const harness = profile?.harness.trim();
+    if (!harness) return "Harness not reported";
+    return /\bagent$/i.test(harness) ? harness : `${harness} Agent`;
+  }
+
   function formatTimestamp(value: string): string {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return "unknown time";
@@ -437,7 +443,7 @@
                   <span class="code-agent-line code-agent-line-primary">
                     <strong>{agent.display_name}</strong>
                     {#if agent.handle}<span class="code-agent-handle">/ @{agent.handle}</span>{/if}
-                    <span class="code-agent-kind">· OpenClaw Agent</span>
+                    <span class="code-agent-kind">· {harnessLabel(profile)}</span>
                   </span>
                   <span class="code-agent-line code-agent-line-meta">
                     owner {ownerName(agent)} · model: {profile?.model || "Not reported"} · {profile?.thinking || "Not reported"}

@@ -94,7 +94,7 @@ test("code channels switch between single-user and multi-user rooms durably", as
   const runtimeProfileResponse = await page.request.patch(
     `/api/workspaces/${isolatedWorkspace.id}/bots/${bot.id}/runtime-profile`,
     {
-      data: { harness: "OpenClaw", model: "openai/GPT-5.6-sol", thinking: "high" },
+      data: { harness: "Codex", model: "openai/GPT-5.6-sol", thinking: "high" },
     },
   );
   expect(runtimeProfileResponse.ok()).toBe(true);
@@ -137,13 +137,13 @@ test("code channels switch between single-user and multi-user rooms durably", as
   );
   // Close the popover so it does not overlay the identity/PR/notes assertions.
   await page.keyboard.press("Escape");
-  // Compact two-line identity strip: line 1 = name / @handle · kind,
+  // Compact two-line identity strip: line 1 = name / @handle · runtime harness,
   // line 2 = owner · provider-qualified model · thinking. Assert the exact
   // composed content of each line rather than stray standalone text nodes.
   const identityRow = workspace.locator(".code-agent-row");
   await expect(identityRow).toHaveCount(1);
   await expect(identityRow.locator(".code-agent-line-primary")).toHaveText(
-    "Chisel / @chisel-stock · OpenClaw Agent",
+    "Chisel / @chisel-stock · Codex Agent",
   );
   await expect(identityRow.locator(".code-agent-line-meta")).toHaveText(
     `owner ${currentUser.display_name} · model: openai/GPT-5.6-sol · high`,
