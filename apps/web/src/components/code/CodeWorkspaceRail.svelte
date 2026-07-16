@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type {
     BotRuntimeProfile,
     Channel,
@@ -41,6 +42,8 @@
   }: Props = $props();
 
   let settingsOpen = $state(false);
+  let settingsElement = $state<HTMLElement | null>(null);
+  let settingsTrigger = $state<HTMLButtonElement | null>(null);
   let editingNotes = $state(false);
   let draftPlan = $state("");
   let draftGoal = $state("");
@@ -52,6 +55,22 @@
 
   let multiUser = $derived(channel.code_mode === "multi_user");
 
+  async function toggleSettings(): Promise<void> {
+    if (settingsOpen) {
+      closeSettings(true);
+      return;
+    }
+    settingsOpen = true;
+    await tick();
+    settingsElement?.focus();
+  }
+
+  function closeSettings(restoreFocus = false): void {
+    if (!settingsOpen) return;
+    settingsOpen = false;
+    if (restoreFocus) void tick().then(() => settingsTrigger?.focus());
+  }
+
   $effect(() => {
     if (channel.id === activeChannelID) return;
     activeChannelID = channel.id;
@@ -61,6 +80,10 @@
     settingsOpen = false;
     void loadPullRequestStatus();
     void loadRuntimeProfiles();
+  });
+
+  $effect(() => {
+    if (collapsed) closeSettings();
   });
 
   function initials(agent: User): string {
@@ -162,6 +185,25 @@
   }
 </script>
 
+<svelte:window
+  onpointerdown={(event) => {
+    const target = event.target as Node | null;
+    if (
+      settingsOpen &&
+      !settingsElement?.contains(target) &&
+      !settingsTrigger?.contains(target)
+    ) {
+      closeSettings();
+    }
+  }}
+  onkeydown={(event) => {
+    if (settingsOpen && event.key === "Escape") {
+      event.preventDefault();
+      closeSettings(true);
+    }
+  }}
+/>
+
 <aside class:collapsed class="code-workspace-rail" aria-label="Code workspace">
   {#if collapsed}
     <button
@@ -191,7 +233,8 @@
           class="code-icon-button"
           aria-label="Channel settings"
           aria-expanded={settingsOpen}
-          onclick={() => (settingsOpen = !settingsOpen)}
+          bind:this={settingsTrigger}
+          onclick={() => void toggleSettings()}
         >
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h8M15 5h2M3 10h2M9 10h8M3 15h6M13 15h4M11 3v4M7 8v4M11 13v4" /></svg>
         </button>
@@ -208,13 +251,25 @@
     </header>
 
     {#if settingsOpen}
-      <section class="code-settings-panel" aria-label="Channel settings panel">
+      <div
+        class="code-settings-panel"
+        role="dialog"
+        aria-label="Channel settings"
+        tabindex="-1"
+        bind:this={settingsElement}
+        onkeydown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            closeSettings(true);
+          }
+        }}
+      >
         <header>
           <div>
             <span>Channel settings</span>
             <strong>{multiUser ? "Multi-user project room" : "Personal agent room"}</strong>
           </div>
-          <button type="button" class="code-text-button" onclick={() => (settingsOpen = false)}>Done</button>
+          <button type="button" class="code-text-button" onclick={() => closeSettings(true)}>Done</button>
         </header>
         <div class="code-mode-switch" role="group" aria-label="Code workspace mode">
           <button
@@ -235,7 +290,7 @@
         <p>{multiUser ? "Everyone in the room shares project state." : "The room follows one operator and their owner-scoped agents."}</p>
         {#if error}<p class="code-mode-error" role="alert">{error}</p>{/if}
         {#if !canManage}<p class="code-mode-note">Only the workspace owner can change this setting.</p>{/if}
-      </section>
+      </div>
     {/if}
 
     <div class="code-workspace-panels">

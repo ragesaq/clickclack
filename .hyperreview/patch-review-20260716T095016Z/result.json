@@ -1,0 +1,415 @@
+{
+  "schemaVersion": "hyperreview-result/v0",
+  "artifactHeader": {
+    "artifactKind": "hyperreview-result",
+    "artifactContract": "hyperreview-result/v0",
+    "hyperreviewVersion": "0.15.0",
+    "hyperreviewBuild": "installed-vendored-copy",
+    "hyperreviewSource": {
+      "repo": "PsiClawOps/hyperreview-local",
+      "commit": "unknown-installed-copy",
+      "skill": "hyperreview-patch"
+    },
+    "emitter": "chisel",
+    "emittedAt": "2026-07-16T09:50:16Z",
+    "validationProfile": "strict"
+  },
+  "mode": "patch-review",
+  "target": "ClickClack live code-room chain and roster correction",
+  "targetType": "diff",
+  "scope": "Staged changes to per-user rail persistence, Channel Settings lifecycle, agent-turn final-message association, and focused browser regression coverage. Generated embedded web assets excluded from reviewable churn.",
+  "verdict": "PASS",
+  "evidenceSources": [
+    {
+      "id": "ev-staged-tree",
+      "kind": "command",
+      "description": "Exact reviewed staged tree 712834df7fc99a385df0c597347ff16419be96c9",
+      "refs": [{ "kind": "command", "ref": "git write-tree" }]
+    },
+    {
+      "id": "ev-source-diff",
+      "kind": "file",
+      "description": "Six hand-authored source and test files in the staged diff",
+      "refs": [
+        { "kind": "file", "ref": "apps/web/src/ChatApp.svelte" },
+        { "kind": "file", "ref": "apps/web/src/components/code/CodeWorkspaceRail.svelte" },
+        { "kind": "file", "ref": "apps/web/src/lib/chat/agent-activity.ts" },
+        { "kind": "file", "ref": "apps/web/src/lib/code/railPreferences.ts" },
+        { "kind": "test", "ref": "tests/e2e/agent-activity-chain.spec.ts" },
+        { "kind": "test", "ref": "tests/e2e/code-channel-mode.spec.ts" }
+      ]
+    },
+    {
+      "id": "ev-full-gate",
+      "kind": "test",
+      "description": "Repository-wide pnpm check passed",
+      "refs": [{ "kind": "command", "ref": "pnpm check" }]
+    },
+    {
+      "id": "ev-focused-browser",
+      "kind": "test",
+      "description": "Six focused Chromium tests passed after review fixes",
+      "refs": [{ "kind": "command", "ref": "pnpm exec playwright test ... --project=chromium --grep focused-set" }]
+    },
+    {
+      "id": "ev-xfam-review",
+      "kind": "prior-review",
+      "description": "Claude Opus 4.8 high cross-family review and exact-tree re-review",
+      "refs": [
+        { "kind": "run", "ref": "claude-session:54cb64ec-ca2b-45b2-b8e9-c5995f86e069" },
+        { "kind": "run", "ref": "claude-session:300aa95c-d9f1-48b6-88a9-8520b3382f4a" }
+      ]
+    },
+    {
+      "id": "ev-parity-matrix",
+      "kind": "doc",
+      "description": "Reviewer parity matrix v0.4.0 sha256 522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6",
+      "refs": [{ "kind": "doc", "ref": "contracts/reviewer-parity-matrix.v0.json" }]
+    }
+  ],
+  "coverage": {
+    "scopeReviewed": [
+      "agent activity final-message inference and exact chain placement",
+      "completed preamble auto-collapse contract",
+      "Channel Settings open, outside-click, Escape, Done, and rail-collapse lifecycle",
+      "per-user device-local rail preference",
+      "compact two-line agent identity assertion and overflow guard",
+      "generated web asset build output"
+    ],
+    "scopeNotReviewed": [
+      "unrelated API and persistence code inherited from the accepted base branch",
+      "minified generated bundle internals"
+    ],
+    "coverageLevel": "high",
+    "limitations": [
+      "Ordinary agent responses carry no turn_id, so an interleaved answer followed by delayed commentary and a later standalone response is structurally ambiguous; the source now states this limit."
+    ]
+  },
+  "confidence": {
+    "level": "high",
+    "score": 0.94,
+    "rationale": "The exact staged tree received a cross-family re-review after both Low findings were fixed. The full repository gate and six focused browser tests passed."
+  },
+  "analysisPackage": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "design-operator-experience",
+    "judge"
+  ],
+  "passesRun": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "judge"
+  ],
+  "conditionalPassesSkipped": [
+    {
+      "id": "boundary-threat",
+      "reason": "No network, auth, credential, secret, or external-action boundary changed.",
+      "evidence": "Reviewed staged paths and diff hunks."
+    },
+    {
+      "id": "authority-provenance",
+      "reason": "No identity, delegation, or write-authority behavior changed.",
+      "evidence": "The local preference key is scoped by the already-authenticated user id."
+    },
+    {
+      "id": "operational-impact",
+      "reason": "No service, deployment, install, or operator-command surface changed.",
+      "evidence": "All hand-authored paths are web UI source or tests."
+    },
+    {
+      "id": "migration-safety",
+      "reason": "No schema, durable server persistence, or data migration changed.",
+      "evidence": "The only persistence addition is best-effort browser localStorage."
+    },
+    {
+      "id": "code-map-evidence",
+      "reason": "The change is local to one Svelte surface and one message coalescer; no structural claim depends on a code map.",
+      "evidence": "Six hand-authored files, 171 added and 17 deleted lines."
+    },
+    {
+      "id": "finding-ledger",
+      "reason": "No findings remained after the exact-tree re-review.",
+      "evidence": "Prior Low findings and the keyboard-state candidate are recorded in rejectedFindings and closed."
+    }
+  ],
+  "findings": [],
+  "rejectedFindings": [
+    {
+      "id": "RF-001",
+      "title": "Post-activity inference comment overstates the available correlation",
+      "severity": "low",
+      "confidence": {
+        "level": "high",
+        "score": 0.97,
+        "rationale": "The first review traced an ambiguous message ordering and the missing turn_id contract."
+      },
+      "symptom": "The comment claimed later standalone messages could not be attached to a completed turn.",
+      "source": "apps/web/src/lib/chat/agent-activity.ts",
+      "consequence": "A future maintainer could mistake a heuristic for a guaranteed correlation rule.",
+      "remedy": "Closed: the comment now names the assumption and the data-model ambiguity.",
+      "verification": "Cross-family re-review confirmed the corrected wording matches the implementation.",
+      "evidenceRefs": ["ev-source-diff", "ev-xfam-review"]
+    },
+    {
+      "id": "RF-002",
+      "title": "Outside-click dismissal lacked browser coverage",
+      "severity": "low",
+      "confidence": {
+        "level": "high",
+        "score": 0.99,
+        "rationale": "The first review verified the pointerdown path was absent from the test."
+      },
+      "symptom": "The settings panel's new outside-click handler had no regression assertion.",
+      "source": "tests/e2e/code-channel-mode.spec.ts",
+      "consequence": "A broken pointerdown handler could leave the panel open without failing the suite.",
+      "remedy": "Closed: the test now clicks a neutral rail heading and verifies dismissal without focus restoration.",
+      "verification": "Focused Chromium test passed and the cross-family re-review confirmed the assertion distinguishes the path.",
+      "evidenceRefs": ["ev-focused-browser", "ev-xfam-review"]
+    },
+    {
+      "id": "RF-003",
+      "title": "Keyboard rail collapse could preserve an open settings state",
+      "severity": "low",
+      "confidence": {
+        "level": "high",
+        "score": 0.97,
+        "rationale": "The first review traced Enter activation, which emits no pointerdown dismissal."
+      },
+      "symptom": "Collapsing with Enter could unmount the open dialog without clearing settingsOpen.",
+      "source": "apps/web/src/components/code/CodeWorkspaceRail.svelte",
+      "consequence": "Re-expanding the rail could reopen stale settings state.",
+      "remedy": "Closed: a collapsed-state effect closes settings, with an Enter-key browser assertion through re-expansion.",
+      "verification": "Focused Chromium test passed and the cross-family re-review confirmed the test distinguishes state reset from unmounting.",
+      "evidenceRefs": ["ev-focused-browser", "ev-xfam-review"]
+    }
+  ],
+  "findingLedger": [
+    {
+      "scope": "patch-review of staged tree 712834df7fc99a385df0c597347ff16419be96c9",
+      "result": "clean-after-fix",
+      "checked": "message association, preamble completion, settings lifecycle, rail persistence, compact roster, and focused regression coverage"
+    }
+  ],
+  "cleanResult": {
+    "status": "no-findings",
+    "statement": "Checked the six hand-authored staged files after closing two Low findings and one keyboard-state candidate; no findings remain under reviewed scope.",
+    "scopeChecked": [
+      "message-chain association",
+      "preamble auto-collapse",
+      "settings focus and dismissal",
+      "keyboard rail collapse",
+      "per-user rail persistence",
+      "compact two-line agent roster"
+    ]
+  },
+  "reportQuality": {
+    "status": "passed",
+    "checks": [
+      "exact staged tree recorded",
+      "required passes completed",
+      "conditional skips recorded",
+      "test evidence recorded",
+      "prior findings closed and preserved",
+      "cross-family provenance recorded",
+      "verdict follows patch-review contract"
+    ]
+  },
+  "nextAction": "no-action",
+  "gateMode": "blocking",
+  "blocksStage": false,
+  "activationPlan": {
+    "requestedWorkShapes": [
+      "messaging-routing",
+      "ui-state-lifecycle",
+      "device-local-preference"
+    ],
+    "normalizedWorkShapes": [
+      "agent-turn-coalescing",
+      "settings-popover-state",
+      "user-scoped-local-storage"
+    ],
+    "normalizationActions": [],
+    "activatedPasses": [
+      {
+        "id": "changed-surface",
+        "reason": "Required for patch-review mode",
+        "sourceSignal": "staged diff",
+        "mandatory": true
+      },
+      {
+        "id": "contract-correctness",
+        "reason": "Required for patch-review mode",
+        "sourceSignal": "message-chain and UI behavior contracts",
+        "mandatory": true
+      },
+      {
+        "id": "test-evidence",
+        "reason": "Required for patch-review mode",
+        "sourceSignal": "repository gate and focused Chromium tests",
+        "mandatory": true
+      },
+      {
+        "id": "judge",
+        "reason": "Required for every successful review",
+        "sourceSignal": "mode contract",
+        "mandatory": true
+      }
+    ],
+    "skippedConditionalPasses": [
+      {
+        "id": "boundary-threat",
+        "reason": "No trust boundary changed.",
+        "evidence": "Staged path and diff review."
+      },
+      {
+        "id": "authority-provenance",
+        "reason": "No authority boundary changed.",
+        "evidence": "Staged path and diff review."
+      },
+      {
+        "id": "operational-impact",
+        "reason": "No operational surface changed.",
+        "evidence": "Staged path and diff review."
+      },
+      {
+        "id": "migration-safety",
+        "reason": "No schema or server-persisted data changed.",
+        "evidence": "Staged path and diff review."
+      },
+      {
+        "id": "code-map-evidence",
+        "reason": "No structural claim required code-map evidence.",
+        "evidence": "Local six-file hand-authored patch."
+      },
+      {
+        "id": "finding-ledger",
+        "reason": "No findings remained after re-review.",
+        "evidence": "Closed prior candidates recorded in rejectedFindings."
+      }
+    ],
+    "selectedDepth": "deep",
+    "depthPromotionReason": "Reflex escalation for a messaging-routing surface required an independent cross-family pass.",
+    "requiredEvidence": [
+      "changed files",
+      "diff hunks",
+      "nearby code",
+      "tests",
+      "public behavior touched"
+    ],
+    "codeAnalysisRequirements": {
+      "status": "not-required",
+      "artifactRefs": []
+    },
+    "requestDisposition": "continue",
+    "expectedFollowupMode": "none"
+  },
+  "lenses": [
+    {
+      "lensId": "build-contract",
+      "verdict": "PASS",
+      "notes": "Repository gate and focused browser suite passed."
+    },
+    {
+      "lensId": "integration-interface",
+      "verdict": "PASS",
+      "notes": "The dialog role, local preference module, and message-chain fields agree with their callers and tests."
+    },
+    {
+      "lensId": "regression-failure-mode",
+      "verdict": "PASS",
+      "notes": "Regression tests cover long turns, delayed final responses, later standalone messages, unfinished turns, dismissal paths, and persistence."
+    },
+    {
+      "lensId": "design-operator-experience",
+      "verdict": "PASS",
+      "notes": "Completed preambles collapse, final answers remain in the chain, and the roster assertion binds the compact two-line design."
+    }
+  ],
+  "skippedLenses": [
+    {
+      "lensId": "data-boundary-security",
+      "reason": "No security boundary changed."
+    },
+    {
+      "lensId": "authority-provenance",
+      "reason": "No authority or delegation surface changed."
+    },
+    {
+      "lensId": "recall-quality",
+      "reason": "No memory, search, or retrieval behavior changed."
+    }
+  ],
+  "reReview": true,
+  "reviewerProvenance": {
+    "provider": "anthropic",
+    "model": "claude-opus-4-8",
+    "matrixId": "claude-opus-4-8",
+    "family": "anthropic",
+    "effort": "high",
+    "runtimeConfirmed": true,
+    "assuranceState": "no_eligible_parity_reviewer"
+  },
+  "targetBinding": {
+    "repo": "/home/lumadmin/.openclaw/workspace-council/chisel/active/clickclack-live-correction",
+    "diffCommand": "git diff --cached",
+    "stagedTree": "712834df7fc99a385df0c597347ff16419be96c9",
+    "stagedPathsSha256": "a9a140bc6a140145ce906b3e1dd129521e43e2f17327b940f8c868b685b7bce5",
+    "reviewableChurn": "171 added and 17 deleted lines across six hand-authored files; generated web assets excluded"
+  },
+  "validationOutputs": {
+    "repositoryGate": "pnpm check: exit 0",
+    "focusedBrowser": "six Chromium tests: passed",
+    "treeBinding": "git write-tree: 712834df7fc99a385df0c597347ff16419be96c9",
+    "pathBinding": "git diff --cached --name-only | sha256sum: a9a140bc6a140145ce906b3e1dd129521e43e2f17327b940f8c868b685b7bce5"
+  },
+  "testsOrCommands": [
+    {
+      "label": "Repository gate",
+      "command": "pnpm check",
+      "result": "exit 0",
+      "status": "passed"
+    },
+    {
+      "label": "Focused browser regression suite",
+      "command": "pnpm exec playwright test tests/e2e/agent-activity-chain.spec.ts tests/e2e/code-channel-mode.spec.ts tests/e2e/chat.spec.ts --project=chromium --grep focused-set",
+      "result": "6 passed",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "kind": "file",
+      "ref": ".hyperreview/patch-review-20260716T095016Z/summary.md",
+      "description": "Review summary"
+    },
+    {
+      "kind": "file",
+      "ref": ".hyperreview/patch-review-20260716T095016Z/result.json",
+      "description": "Schema-valid result artifact"
+    }
+  ],
+  "outputTier": "Full",
+  "escalation": {
+    "author": {
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "family": "openai",
+      "effort": "high"
+    },
+    "reviewer": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "matrixId": "claude-opus-4-8",
+      "family": "anthropic",
+      "effort": "high"
+    },
+    "independence": "xfam",
+    "assuranceState": "no_eligible_parity_reviewer",
+    "matrixVersion": "0.4.0",
+    "matrixSha256": "522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6",
+    "reason": "Messaging-routing is a high-blast-radius reflex trigger. The cross-family reviewer was reachable, but the effective author effort did not match the matrix eligibility row."
+  }
+}

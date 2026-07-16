@@ -3,6 +3,7 @@
   import { onDestroy, onMount, tick } from "svelte";
   import { APIError, api } from "./lib/api";
   import { initAppearance } from "./lib/appearance";
+  import { loadRailCollapsed, saveRailCollapsed } from "./lib/code/railPreferences";
   import { desktop } from "./lib/desktop";
   import { probeMediaDimensions } from "./lib/media";
   import { gifLibrary } from "./lib/gifs";
@@ -96,6 +97,7 @@
   let codeModeUpdating = false;
   let codeModeError = "";
   let codeRailCollapsed = false;
+  let codeRailPrefsUserID = "";
   let codeNotesUpdating = false;
   let codeNotesError = "";
   let directMemberID = "";
@@ -244,6 +246,10 @@
   );
   $: recentPeople = collectRecentPeople(messages, directConversations, user?.id || "");
   $: mentionPeople = collectMentionPeople(user, recentPeople, moderationMembers, selectedDirect);
+  $: if (user?.id && user.id !== codeRailPrefsUserID) {
+    codeRailPrefsUserID = user.id;
+    codeRailCollapsed = loadRailCollapsed(user.id);
+  }
   $: codeRoomAgents = workspacePeople.filter(
     (person) =>
       person.kind === "bot" &&
@@ -3126,7 +3132,10 @@
           agents={codeRoomAgents}
           people={workspacePeople}
           onMode={(mode) => void updateCodeMode(mode)}
-          onCollapsed={(collapsed) => (codeRailCollapsed = collapsed)}
+          onCollapsed={(collapsed) => {
+            codeRailCollapsed = collapsed;
+            saveRailCollapsed(user?.id, collapsed);
+          }}
           onNotes={updateCodeWorkspaceNotes}
           channel={selectedChannel}
         />

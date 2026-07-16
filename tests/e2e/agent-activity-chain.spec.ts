@@ -69,6 +69,25 @@ test("later final response wins over an ordinary progress message in the same tu
   expect(groupMessages(coalesced).at(-1)?.messages.at(-1)?.id).toBe(final.id);
 });
 
+test("a later standalone agent message stays outside the completed turn", () => {
+  const activity = message(1, {
+    kind: "agent_commentary",
+    turn_id: "turn-complete",
+  });
+  const final = message(2, { body: "The requested correction is complete." });
+  const laterMessage = message(3, { body: "A separate follow-up message." });
+
+  const coalesced = coalesceAgentActivity([activity, final, laterMessage], visibleActivity);
+
+  expect(coalesced.map((item) => item.id)).toEqual([activity.id, final.id, laterMessage.id]);
+  expect(coalesced[0].preamble_block?.finalMessageId).toBe(final.id);
+  expect(groupMessages(coalesced)[0].messages.map((item) => item.id)).toEqual([
+    activity.id,
+    final.id,
+    laterMessage.id,
+  ]);
+});
+
 test("an unfinished turn cannot claim a later turn's final answer", () => {
   const firstTurn = message(1, {
     kind: "agent_commentary",

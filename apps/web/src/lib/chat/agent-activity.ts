@@ -205,6 +205,7 @@ export function coalesceAgentActivity(
   const finals = new Map<string, { final: boolean; finalMessageId?: string }>();
   for (const [key, turn] of turns) {
     let finalMessageId: string | undefined;
+    let interleavedFinalMessageId: string | undefined;
     for (let i = turn.firstIndex + 1; i < messages.length; i += 1) {
       const candidate = messages[i];
       // Do not let a later turn from the same agent donate its final answer to
@@ -218,14 +219,21 @@ export function coalesceAgentActivity(
         break;
       }
       if (isOrdinaryMessage(candidate) && authorKey(candidate) === turn.author) {
-        // Progress updates can also arrive as ordinary bot messages while the
-        // same turn continues producing activity. Keep the newest eligible
-        // ordinary message so the chain follows the final response, not an
-        // earlier progress note. The next same-author turn remains the hard
-        // boundary above.
-        finalMessageId = candidate.id;
+        if (i > turn.lastIndex) {
+          // Assume the first same-author response after the turn's final
+          // activity row completes the chain. Ordinary responses have no
+          // turn_id, so an interleaved answer followed by delayed commentary
+          // and then a standalone response remains structurally ambiguous.
+          finalMessageId = candidate.id;
+          break;
+        }
+        // A response can land before debounced trailing commentary. Retain the
+        // latest interleaved candidate as a fallback, but prefer the first
+        // response after the final activity row whenever one exists.
+        interleavedFinalMessageId = candidate.id;
       }
     }
+    finalMessageId ??= interleavedFinalMessageId;
     let final = turn.lastIndex < messages.length - 1 || finalMessageId !== undefined;
     if (!final) {
       const newest = Date.parse(turn.rows[turn.rows.length - 1].created_at);

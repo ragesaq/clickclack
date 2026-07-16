@@ -46,9 +46,12 @@ test("code channels switch between single-user and multi-user rooms durably", as
   const workspace = page.getByRole("complementary", { name: "Code workspace" });
   await expect(workspace).toBeVisible();
   await expect(workspace.getByRole("heading", { name: `#${channelName}` })).toBeVisible();
-  await workspace.getByRole("button", { name: "Channel settings" }).click();
+  const settingsTrigger = workspace.getByRole("button", { name: "Channel settings" });
+  await settingsTrigger.click();
+  const settings = workspace.getByRole("dialog", { name: "Channel settings" });
+  await expect(settings).toBeFocused();
   await expect(workspace.getByText("Multi-user project room", { exact: true })).toBeVisible();
-  await expect(workspace.getByRole("button", { name: "Multi-user" })).toHaveAttribute(
+  await expect(settings.getByRole("button", { name: "Multi-user" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
@@ -58,13 +61,22 @@ test("code channels switch between single-user and multi-user rooms durably", as
       response.request().method() === "PATCH" &&
       response.url().endsWith(`/api/channels/${createBody.channel.id}`),
   );
-  await workspace.getByRole("button", { name: "Single user" }).click();
+  await settings.getByRole("button", { name: "Single user" }).click();
   const updateResponse = await updated;
   expect(updateResponse.ok()).toBe(true);
   const updateBody = (await updateResponse.json()) as {
     channel: { template: string; code_mode: string };
   };
   expect(updateBody.channel).toMatchObject({ template: "code", code_mode: "single_user" });
+  await page.keyboard.press("Escape");
+  await expect(settings).toBeHidden();
+  await expect(settingsTrigger).toBeFocused();
+
+  await settingsTrigger.click();
+  await expect(settings).toBeVisible();
+  await workspace.getByRole("heading", { name: `#${channelName}` }).click();
+  await expect(settings).toBeHidden();
+  await expect(settingsTrigger).not.toBeFocused();
 
   const meResponse = await page.request.get("/api/me");
   expect(meResponse.ok()).toBe(true);
@@ -130,6 +142,8 @@ test("code channels switch between single-user and multi-user rooms durably", as
     "aria-pressed",
     "true",
   );
+  await page.keyboard.press("Escape");
+  await expect(workspace.getByRole("dialog", { name: "Channel settings" })).toBeHidden();
   // Compact two-line identity strip: line 1 = name / @handle · kind,
   // line 2 = owner · provider-qualified model · thinking. Assert the exact
   // composed content of each line rather than stray standalone text nodes.
@@ -141,9 +155,11 @@ test("code channels switch between single-user and multi-user rooms durably", as
   await expect(identityRow.locator(".code-agent-line-meta")).toHaveText(
     `owner ${currentUser.display_name} · model: openai/GPT-5.6-sol · high`,
   );
-  const lineWidths = await identityRow.locator(".code-agent-line").evaluateAll((lines) =>
-    lines.map((line) => ({ clientWidth: line.clientWidth, scrollWidth: line.scrollWidth })),
-  );
+  const lineWidths = await identityRow
+    .locator(".code-agent-line")
+    .evaluateAll((lines) =>
+      lines.map((line) => ({ clientWidth: line.clientWidth, scrollWidth: line.scrollWidth })),
+    );
   expect(lineWidths.every(({ clientWidth, scrollWidth }) => scrollWidth <= clientWidth)).toBe(true);
   await expect(workspace.getByRole("link", { name: "Open ClickClack for Codex" })).toHaveAttribute(
     "href",
@@ -172,8 +188,28 @@ test("code channels switch between single-user and multi-user rooms durably", as
   await expect(page.locator(".conversation-surface")).toHaveClass(/code-rail-collapsed/);
   await expect(workspace.getByRole("button", { name: "Open code workspace" })).toBeVisible();
   await expect(page.getByLabel("Message body")).toBeVisible();
+  const railPreferenceKey = `clickclack:code-rail-collapsed:v1:${currentUser.id}`;
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), railPreferenceKey)).toBe(
+    "1",
+  );
+
+  await page.reload();
+  await waitForAppReady(page);
+  await expect(page.locator(".conversation-surface")).toHaveClass(/code-rail-collapsed/);
   await workspace.getByRole("button", { name: "Open code workspace" }).click();
   await expect(workspace.getByRole("button", { name: "Minimize code workspace" })).toBeVisible();
+  expect(
+    await page.evaluate((key) => window.localStorage.getItem(key), railPreferenceKey),
+  ).toBeNull();
+
+  await settingsTrigger.click();
+  await expect(settings).toBeVisible();
+  const minimizeRail = workspace.getByRole("button", { name: "Minimize code workspace" });
+  await minimizeRail.focus();
+  await minimizeRail.press("Enter");
+  await expect(workspace.getByRole("button", { name: "Open code workspace" })).toBeVisible();
+  await workspace.getByRole("button", { name: "Open code workspace" }).click();
+  await expect(settings).toBeHidden();
 
   for (const viewport of [
     { width: 780, height: 700 },
