@@ -78,6 +78,7 @@ export function groupMessages(list: Message[]): MessageGroup[] {
   let lastDay = "";
   let lastAuthor = "";
   let lastTime = 0;
+  let lastMessage: Message | undefined;
   for (const message of list) {
     const created = new Date(message.created_at);
     const dayKey = created.toDateString();
@@ -85,7 +86,16 @@ export function groupMessages(list: Message[]): MessageGroup[] {
     const dayChanged = dayKey !== lastDay;
     const newAuthor = authorID !== lastAuthor;
     const tooFarApart = created.getTime() - lastTime > 5 * 60 * 1000;
-    if (dayChanged || newAuthor || tooFarApart || groups.length === 0) {
+    // An agent turn is one visual event even when the answer arrives after the
+    // normal five-minute author-group cutoff. The activity coalescer records
+    // the exact final message id, so this exception cannot fuse an unrelated
+    // later message from the same bot.
+    const continuesPreambleChain =
+      lastMessage?.preamble_block?.finalMessageId === message.id && authorID === lastAuthor;
+    if (
+      (!continuesPreambleChain && (dayChanged || newAuthor || tooFarApart)) ||
+      groups.length === 0
+    ) {
       groups.push({
         key: message.id,
         dayLabel: dayChanged ? dayLabel(message.created_at) : null,
@@ -102,6 +112,7 @@ export function groupMessages(list: Message[]): MessageGroup[] {
     lastDay = dayKey;
     lastAuthor = authorID;
     lastTime = created.getTime();
+    lastMessage = message;
   }
   return groups;
 }

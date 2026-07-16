@@ -66,12 +66,14 @@
   // Preamble/answer chain. Within an agent message group the synthetic
   // preamble row is immediately followed by the same author's final answer
   // (coalesceAgentActivity anchors the block at the turn, ordinary messages
-  // pass through), so within-group adjacency identifies the two halves of one
-  // outlined chain. The completed preamble becomes the amber expandable cap;
-  // the final response expands the same bubble below it.
-  let followsPreamble = $derived(Boolean(previousMessage?.preamble_block) && !preambleBlock);
+  // pass through). The block's exact finalMessageId identifies the two halves
+  // without a duration assumption. The completed preamble becomes the amber
+  // expandable cap; the final response expands the same bubble below it.
+  let followsPreamble = $derived(
+    !preambleBlock && previousMessage?.preamble_block?.finalMessageId === message.id,
+  );
   let precedesFinalMessage = $derived(
-    Boolean(preambleBlock) && Boolean(nextMessage) && !nextMessage?.preamble_block,
+    Boolean(preambleBlock?.finalMessageId) && preambleBlock?.finalMessageId === nextMessage?.id,
   );
   let threadReplyCount = $derived(message.thread_state?.reply_count || 0);
   let hasThreadReplies = $derived(threadReplyCount > 0);

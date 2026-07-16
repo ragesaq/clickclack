@@ -16,8 +16,10 @@
 // turn. Adjacency grouping splits that into two blocks and leaves the trailing
 // fragment permanently expanded under the final answer, which reads as the
 // final message being swallowed by the preamble. Instead, every activity row
-// of a turn folds into one block anchored at the turn's first activity row, so
-// the block always renders above the final answer as one unit.
+// of a turn folds into one block. While live, the block stays anchored at the
+// turn's first activity row. Once the exact final answer is known, the block is
+// emitted immediately before it so progress messages cannot split the visual
+// preamble-to-answer chain.
 //
 // A turn is final (collapse to one line) when its narration is over:
 //   - a normal message from the same author (the final answer) follows the
@@ -130,6 +132,7 @@ function buildBlock(
   turnId: string,
   rows: Message[],
   final: boolean,
+  finalMessageId: string | undefined,
   flags: AgentActivityFlags,
 ): PreambleBlock | null {
   const items: PreambleItem[] = [];
@@ -152,7 +155,7 @@ function buildBlock(
     }
   }
   if (items.length === 0) return null;
-  return { turnId, items, final };
+  return { turnId, items, final, finalMessageId };
 }
 
 type TurnAccumulator = {
@@ -165,21 +168,18 @@ type TurnAccumulator = {
 
 // Walk an ordered message list and collapse each turn's agent activity rows
 // (grouped by turn_id across the whole list) into a single synthetic preamble
-// message anchored at the turn's first activity row. Ordinary messages pass
-// through untouched and keep their order.
+// message. Live turns stay at the first activity row; completed turns move
+// immediately before their inferred final answer. Ordinary messages otherwise
+// pass through untouched and keep their order.
 export function coalesceAgentActivity(
   messages: Message[],
   flags: AgentActivityFlags,
   now = Date.now(),
 ): Message[] {
   const turns = new Map<string, TurnAccumulator>();
-  const lastOrdinaryIndexByAuthor = new Map<string, number>();
   for (let i = 0; i < messages.length; i += 1) {
     const message = messages[i];
-    if (!isAgentActivity(message)) {
-      if (isOrdinaryMessage(message)) lastOrdinaryIndexByAuthor.set(authorKey(message), i);
-      continue;
-    }
+    if (!isAgentActivity(message)) continue;
     const key = turnKey(message);
     const turn = turns.get(key);
     if (turn) {
@@ -197,24 +197,74 @@ export function coalesceAgentActivity(
   }
   if (turns.size === 0) return messages;
 
-  // Decide turn finality: a same-author ordinary message (the final answer)
-  // after the turn opened, anything after the turn's last activity row, or
-  // staleness (no new frames for TURN_STALE_MS).
-  const finals = new Map<string, boolean>();
+  // Decide turn finality and retain the exact ordinary message that completed
+  // it. A final answer can arrive more than five minutes after the preamble,
+  // or before a debounced trailing activity row. Carrying its id through the
+  // synthetic block lets grouping and styling preserve one continuous event
+  // without relying on author-group timing.
+  const finals = new Map<string, { final: boolean; finalMessageId?: string }>();
   for (const [key, turn] of turns) {
-    let final =
-      turn.lastIndex < messages.length - 1 ||
-      (lastOrdinaryIndexByAuthor.get(turn.author) ?? -1) > turn.firstIndex;
+    let finalMessageId: string | undefined;
+    for (let i = turn.firstIndex + 1; i < messages.length; i += 1) {
+      const candidate = messages[i];
+      // Do not let a later turn from the same agent donate its final answer to
+      // an older activity-only turn. Once a different same-author turn starts,
+      // this turn can only finish by staleness.
+      if (
+        isAgentActivity(candidate) &&
+        authorKey(candidate) === turn.author &&
+        turnKey(candidate) !== key
+      ) {
+        break;
+      }
+      if (isOrdinaryMessage(candidate) && authorKey(candidate) === turn.author) {
+        // Progress updates can also arrive as ordinary bot messages while the
+        // same turn continues producing activity. Keep the newest eligible
+        // ordinary message so the chain follows the final response, not an
+        // earlier progress note. The next same-author turn remains the hard
+        // boundary above.
+        finalMessageId = candidate.id;
+      }
+    }
+    let final = turn.lastIndex < messages.length - 1 || finalMessageId !== undefined;
     if (!final) {
       const newest = Date.parse(turn.rows[turn.rows.length - 1].created_at);
       if (Number.isFinite(newest) && now - newest > TURN_STALE_MS) final = true;
     }
-    finals.set(key, final);
+    finals.set(key, { final, finalMessageId });
+  }
+
+  const syntheticByTurn = new Map<string, Message>();
+  const syntheticByFinalMessage = new Map<string, Message>();
+  for (const [key, turn] of turns) {
+    const finalState = finals.get(key);
+    const block = buildBlock(
+      turn.turnId,
+      turn.rows,
+      finalState?.final === true,
+      finalState?.finalMessageId,
+      flags,
+    );
+    if (!block) continue;
+    const synthetic: Message = {
+      ...turn.rows[0],
+      kind: "agent_commentary",
+      body: "",
+      attachments: undefined,
+      quoted_message_id: undefined,
+      preamble_block: block,
+    };
+    syntheticByTurn.set(key, synthetic);
+    if (finalState?.finalMessageId) {
+      syntheticByFinalMessage.set(finalState.finalMessageId, synthetic);
+    }
   }
 
   const out: Message[] = [];
   for (let i = 0; i < messages.length; i += 1) {
     const message = messages[i];
+    const completedPreamble = syntheticByFinalMessage.get(message.id);
+    if (completedPreamble) out.push(completedPreamble);
     if (!isAgentActivity(message)) {
       out.push(message);
       continue;
@@ -222,20 +272,12 @@ export function coalesceAgentActivity(
     const key = turnKey(message);
     const turn = turns.get(key);
     if (!turn || turn.firstIndex !== i) continue; // folded into the anchor row
-    const block = buildBlock(turn.turnId, turn.rows, finals.get(key) === true, flags);
-    if (!block) continue;
-    // Synthesize one row from the turn's first activity row so author,
-    // timestamp, channel/seq, and turn_id flow through grouping and the
-    // virtualizer unchanged. The body is cleared; preamble_block drives
-    // rendering.
-    out.push({
-      ...turn.rows[0],
-      kind: "agent_commentary",
-      body: "",
-      attachments: undefined,
-      quoted_message_id: undefined,
-      preamble_block: block,
-    });
+    // Completed turns are relocated directly before their exact final answer
+    // above. Turns without a durable final answer stay at the first activity
+    // row so live and stale activity remains visible in chronological order.
+    if (finals.get(key)?.finalMessageId) continue;
+    const synthetic = syntheticByTurn.get(key);
+    if (synthetic) out.push(synthetic);
   }
   return out;
 }

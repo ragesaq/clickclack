@@ -90,6 +90,11 @@ export type PreambleBlock = {
   turnId: string;
   items: PreambleItem[];
   final: boolean;
+  // The ordinary agent message that completed this activity turn. Ordinary
+  // messages cannot carry turn_id, so the coalescer records the inferred
+  // match client-side. Rendering and author grouping use this exact id to
+  // preserve one continuous preamble-to-answer event even for long turns.
+  finalMessageId?: string;
 };
 
 export type Message = {
