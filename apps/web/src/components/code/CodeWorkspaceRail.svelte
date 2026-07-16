@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type {
     BotRuntimeProfile,
     Channel,
@@ -41,6 +42,14 @@
   }: Props = $props();
 
   let settingsOpen = $state(false);
+  // Channel Settings is a popover dialog (not an inline panel) following the
+  // ChannelList move-menu idiom: on open, focus moves INTO the dialog after the
+  // render tick so the dialog's own Escape handler receives the key (focus would
+  // otherwise stay on the sibling gear trigger and Escape would never reach the
+  // dialog). On close, focus restores to the trigger for keyboard users.
+  let settingsElement = $state<HTMLDivElement | null>(null);
+  let settingsWrap = $state<HTMLDivElement | null>(null);
+  let settingsTrigger = $state<HTMLButtonElement | null>(null);
   let editingNotes = $state(false);
   let draftPlan = $state("");
   let draftGoal = $state("");
@@ -51,6 +60,7 @@
   let runtimeProfiles = $state<Record<string, BotRuntimeProfile>>({});
 
   let multiUser = $derived(channel.code_mode === "multi_user");
+  let modeTitle = $derived(multiUser ? "Shared project room" : "Personal agent room");
 
   $effect(() => {
     if (channel.id === activeChannelID) return;
@@ -160,45 +170,167 @@
   async function saveNotes(): Promise<void> {
     if (await onNotes(draftPlan, draftGoal)) editingNotes = false;
   }
+
+  async function toggleSettings(): Promise<void> {
+    if (settingsOpen) {
+      closeSettings(true);
+      return;
+    }
+    settingsOpen = true;
+    await tick();
+    settingsElement?.focus();
+  }
+
+  function closeSettings(restoreFocus = false): void {
+    if (!settingsOpen) return;
+    settingsOpen = false;
+    if (!restoreFocus) return;
+    void tick().then(() => settingsTrigger?.focus());
+  }
 </script>
 
-<aside class:collapsed class="code-workspace-rail" aria-label="Code workspace">
+<svelte:window
+  onpointerdown={(event) => {
+    // Pointer clicks onto non-focusable outside surfaces never fire focusout,
+    // so dismiss here without stealing focus (no restore: the pointer already
+    // moved the user's attention elsewhere).
+    if (settingsOpen && settingsWrap && !settingsWrap.contains(event.target as Node | null)) {
+      closeSettings();
+    }
+  }}
+/>
+
+<aside
+  class:collapsed
+  class="code-workspace-rail"
+  aria-label={collapsed ? "Code workspace (collapsed)" : "Code workspace"}
+>
   {#if collapsed}
     <button
       type="button"
       class="code-rail-restore"
-      aria-label="Open code workspace"
+      aria-label="Expand code workspace"
       aria-expanded="false"
       onclick={() => onCollapsed(false)}
     >
-      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5M3 3h2v14H3" /></svg>
-      <span>Workspace</span>
-      <i class:active={agentActive} aria-hidden="true"></i>
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </button>
+    <span class="code-mode-chip" title={modeTitle} aria-label={modeTitle}>
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+        {#if multiUser}
+          <circle cx="5.5" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3" />
+          <circle cx="10.5" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3" />
+          <path d="M2.5 13c.6-2 2-3 3-3M13.5 13c-.6-2-2-3-3-3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+        {:else}
+          <circle cx="8" cy="5.5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+          <path d="M3.5 13.5c.8-2.6 2.5-4 4.5-4s3.7 1.4 4.5 4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+        {/if}
+      </svg>
+    </span>
+    <span
+      class="code-rail-dot"
+      class:active={agentActive}
+      title={agentActive ? "Agent working" : "Agent idle"}
+      aria-label={agentActive ? "Agent working" : "Agent idle"}
+    ></span>
+    {#if channel.pull_request_url}
+      <span class="code-rail-glyph" title="Pull request linked" aria-hidden="true">PR</span>
+    {/if}
+    {#if agents.length > 0}
+      <span class="code-rail-glyph" title={`${agents.length} agent${agents.length === 1 ? "" : "s"}`} aria-hidden="true">{agents.length}</span>
+    {/if}
   {:else}
     <header class="code-workspace-head">
-      <div>
+      <div class="code-workspace-head-main">
         <span class="code-workspace-kicker">Code workspace</span>
         <h2>#{channel.name}</h2>
+        <div class="code-workspace-head-meta">
+          <span class="code-mode-chip" title={modeTitle} aria-label={modeTitle}>
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+              {#if multiUser}
+                <circle cx="5.5" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3" />
+                <circle cx="10.5" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3" />
+                <path d="M2.5 13c.6-2 2-3 3-3M13.5 13c-.6-2-2-3-3-3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              {:else}
+                <circle cx="8" cy="5.5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+                <path d="M3.5 13.5c.8-2.6 2.5-4 4.5-4s3.7 1.4 4.5 4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              {/if}
+            </svg>
+            <span class="code-mode-chip-label">{multiUser ? "Shared" : "Personal"}</span>
+          </span>
+        </div>
       </div>
       <div class="code-workspace-actions">
         <span class:active={agentActive} class="agent-state">
           <i aria-hidden="true"></i>{agentActive ? "Working" : "Idle"}
         </span>
-        <button
-          type="button"
-          class:active={settingsOpen}
-          class="code-icon-button"
-          aria-label="Channel settings"
-          aria-expanded={settingsOpen}
-          onclick={() => (settingsOpen = !settingsOpen)}
+        <div
+          class="code-settings-wrap"
+          bind:this={settingsWrap}
+          onfocusout={(event) => {
+            if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) closeSettings();
+          }}
         >
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h8M15 5h2M3 10h2M9 10h8M3 15h6M13 15h4M11 3v4M7 8v4M11 13v4" /></svg>
-        </button>
+          <button
+            type="button"
+            class:active={settingsOpen}
+            class="code-icon-button"
+            aria-haspopup="dialog"
+            aria-expanded={settingsOpen}
+            aria-label="Channel settings"
+            bind:this={settingsTrigger}
+            onclick={() => void toggleSettings()}
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h8M15 5h2M3 10h2M9 10h8M3 15h6M13 15h4M11 3v4M7 8v4M11 13v4" /></svg>
+          </button>
+          {#if settingsOpen}
+            <div
+              class="code-channel-settings"
+              role="dialog"
+              aria-label="Channel settings"
+              tabindex="-1"
+              bind:this={settingsElement}
+              onkeydown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  closeSettings(true);
+                }
+              }}
+            >
+              <h3>Channel settings</h3>
+              <p class="code-settings-section-label">Room mode</p>
+              <div class="code-mode-switch" role="group" aria-label="Code workspace mode">
+                <button
+                  type="button"
+                  class:active={!multiUser}
+                  aria-pressed={!multiUser}
+                  disabled={!canManage || updating}
+                  onclick={() => onMode("single_user")}
+                >Single user</button>
+                <button
+                  type="button"
+                  class:active={multiUser}
+                  aria-pressed={multiUser}
+                  disabled={!canManage || updating}
+                  onclick={() => onMode("multi_user")}
+                >Multi-user</button>
+              </div>
+              <p class="code-mode-copy">
+                {multiUser
+                  ? "Everyone in the room shares project state."
+                  : "The room follows one operator and their owner-scoped agents."}
+              </p>
+              {#if error}<p class="code-mode-error" role="alert">{error}</p>{/if}
+              {#if !canManage}<p class="code-mode-note">Only the workspace owner can change this setting.</p>{/if}
+            </div>
+          {/if}
+        </div>
         <button
           type="button"
           class="code-icon-button"
-          aria-label="Minimize code workspace"
+          aria-label="Collapse code workspace"
           aria-expanded="true"
           onclick={() => onCollapsed(true)}
         >
@@ -206,37 +338,6 @@
         </button>
       </div>
     </header>
-
-    {#if settingsOpen}
-      <section class="code-settings-panel" aria-label="Channel settings panel">
-        <header>
-          <div>
-            <span>Channel settings</span>
-            <strong>{multiUser ? "Multi-user project room" : "Personal agent room"}</strong>
-          </div>
-          <button type="button" class="code-text-button" onclick={() => (settingsOpen = false)}>Done</button>
-        </header>
-        <div class="code-mode-switch" role="group" aria-label="Code workspace mode">
-          <button
-            type="button"
-            class:active={!multiUser}
-            aria-pressed={!multiUser}
-            disabled={!canManage || updating}
-            onclick={() => onMode("single_user")}
-          >Single user</button>
-          <button
-            type="button"
-            class:active={multiUser}
-            aria-pressed={multiUser}
-            disabled={!canManage || updating}
-            onclick={() => onMode("multi_user")}
-          >Multi-user</button>
-        </div>
-        <p>{multiUser ? "Everyone in the room shares project state." : "The room follows one operator and their owner-scoped agents."}</p>
-        {#if error}<p class="code-mode-error" role="alert">{error}</p>{/if}
-        {#if !canManage}<p class="code-mode-note">Only the workspace owner can change this setting.</p>{/if}
-      </section>
-    {/if}
 
     <div class="code-workspace-panels">
       <section class="code-plan-panel">

@@ -3,6 +3,7 @@
   import { onDestroy, onMount, tick } from "svelte";
   import { APIError, api } from "./lib/api";
   import { initAppearance } from "./lib/appearance";
+  import { loadRailCollapsed, saveRailCollapsed } from "./lib/code/railPreferences";
   import { desktop } from "./lib/desktop";
   import { probeMediaDimensions } from "./lib/media";
   import { gifLibrary } from "./lib/gifs";
@@ -96,6 +97,12 @@
   let codeModeUpdating = false;
   let codeModeError = "";
   let codeRailCollapsed = false;
+  let codeRailPrefsUserID = "";
+
+  function setCodeRailCollapsed(collapsed: boolean) {
+    codeRailCollapsed = collapsed;
+    saveRailCollapsed(user?.id ?? null, collapsed);
+  }
   let codeNotesUpdating = false;
   let codeNotesError = "";
   let directMemberID = "";
@@ -243,6 +250,13 @@
     artifactViewerElement,
   );
   $: recentPeople = collectRecentPeople(messages, directConversations, user?.id || "");
+  // Rail collapse is a per-user, device-local preference. Load it the first time
+  // we see a signed-in user id so two accounts on one browser keep independent
+  // rail state; subsequent toggles persist through setCodeRailCollapsed.
+  $: if (user?.id && user.id !== codeRailPrefsUserID) {
+    codeRailPrefsUserID = user.id;
+    codeRailCollapsed = loadRailCollapsed(user.id);
+  }
   $: mentionPeople = collectMentionPeople(user, recentPeople, moderationMembers, selectedDirect);
   $: codeRoomAgents = workspacePeople.filter(
     (person) =>
@@ -3126,7 +3140,7 @@
           agents={codeRoomAgents}
           people={workspacePeople}
           onMode={(mode) => void updateCodeMode(mode)}
-          onCollapsed={(collapsed) => (codeRailCollapsed = collapsed)}
+          onCollapsed={(collapsed) => setCodeRailCollapsed(collapsed)}
           onNotes={updateCodeWorkspaceNotes}
           channel={selectedChannel}
         />

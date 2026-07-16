@@ -11,7 +11,7 @@
 }
 
 .conversation-surface.has-code-rail.code-rail-collapsed {
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(0, 1fr) 46px;
 }
 
 .conversation-column {
@@ -680,5 +680,181 @@
 
   .agent-state {
     font-size: 0;
+  }
+}
+
+/* ===========================================================================
+   Facet integration: rail collapse icon strip + Channel Settings popover.
+   These rules layer onto the code-room rail. Collapsed-content rules are scoped
+   under .code-workspace-rail.collapsed so they win over the base .code-rail-restore
+   by specificity (not source order), staying robust against the responsive
+   overrides earlier in this file.
+   ======================================================================== */
+
+.code-workspace-head-main {
+  min-width: 0;
+}
+
+.code-workspace-head-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.code-mode-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.code-mode-chip svg {
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+}
+
+.code-mode-chip-label {
+  letter-spacing: 0.01em;
+}
+
+/* ---- Channel settings popover ---- */
+.code-settings-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.code-channel-settings {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: 240px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow-pop, 0 10px 30px rgba(0, 0, 0, 0.28));
+}
+
+.code-channel-settings h3 {
+  margin: 0 0 8px;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+
+.code-settings-section-label {
+  margin: 0 2px;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.code-channel-settings .code-mode-switch {
+  margin-top: 8px;
+}
+
+.code-channel-settings .code-mode-copy,
+.code-channel-settings > p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+/* ---- Collapsed icon strip ---- */
+.code-workspace-rail.collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 14px 6px;
+  background: var(--panel-2);
+}
+
+.code-workspace-rail.collapsed .code-rail-restore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.code-workspace-rail.collapsed .code-rail-restore:hover {
+  color: var(--text-strong);
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+.code-workspace-rail.collapsed .code-rail-restore:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.code-workspace-rail.collapsed .code-rail-restore svg {
+  width: 14px;
+  height: 14px;
+}
+
+.code-workspace-rail.collapsed .code-mode-chip {
+  padding: 5px;
+}
+
+.code-rail-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted-2);
+}
+
+.code-rail-dot.active {
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 15%, transparent);
+}
+
+.code-rail-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .conversation-surface.has-code-rail .code-workspace-rail.collapsed {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    max-height: none;
+    padding: 8px 16px;
   }
 }
