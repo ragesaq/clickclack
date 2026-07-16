@@ -1,0 +1,232 @@
+diff --git a/tests/e2e/concurrency-race-harness.spec.ts b/tests/e2e/concurrency-race-harness.spec.ts
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/tests/e2e/concurrency-race-harness.spec.ts
+@@ -0,0 +1,226 @@
++import { expect, test, type Page, type Route } from "@playwright/test";
++import { coalesceAgentActivity } from "../../apps/web/src/lib/chat/agent-activity";
++import { groupMessages } from "../../apps/web/src/lib/chat/messages";
++import type { Message } from "../../apps/web/src/lib/types";
++
++/**
++ * Concurrency scaffolding for staged tree 9921901c.
++ *
++ * Exact stress command:
++ *   npx playwright test tests/e2e/concurrency-race-harness.spec.ts \
++ *     --project=chromium --workers=1 --reporter=line
++ *
++ * Browser TypeScript has no native TSAN-equivalent. These tests drive the
++ * real Svelte state machine through Playwright and deliberately hold network
++ * responses to exercise reentrancy and stale-callback guards.
++ */
++
++async function createChannel(page: Page, label: string): Promise<{ id: string; name: string }> {
++  const workspacesResponse = await page.request.get("/api/workspaces");
++  const workspaces = (await workspacesResponse.json()) as { workspaces: { id: string }[] };
++  const workspaceId = workspaces.workspaces[0].id;
++  const channelResponse = await page.request.post(`/api/workspaces/${workspaceId}/channels`, {
++    data: { name: `zz-race-${label}-${Date.now()}`, kind: "public" },
++  });
++  expect(channelResponse.ok()).toBe(true);
++  const { channel } = (await channelResponse.json()) as {
++    channel: { id: string; name: string };
++  };
++  return channel;
++}
++
++async function seedMessages(
++  page: Page,
++  channelID: string,
++  count: number,
++  prefix: string,
++): Promise<void> {
++  for (let index = 1; index <= count; index += 1) {
++    const response = await page.request.post(`/api/channels/${channelID}/messages`, {
++      data: { body: `${prefix} ${index}` },
++    });
++    expect(response.ok()).toBe(true);
++  }
++}
++
++test("held older request suppresses duplicate before_seq loads", async ({ page }) => {
++  const channel = await createChannel(page, "held");
++  await seedMessages(page, channel.id, 450, "Held message");
++
++  const beforeSeqRequests: string[] = [];
++  let signalIntercepted!: () => void;
++  const intercepted = new Promise<void>((resolve) => {
++    signalIntercepted = resolve;
++  });
++  let releaseHeld!: () => void;
++  const held = new Promise<void>((resolve) => {
++    releaseHeld = resolve;
++  });
++  let firstOlderRequest = true;
++
++  await page.route(`**/api/channels/${channel.id}/messages**`, async (route: Route) => {
++    const url = new URL(route.request().url());
++    if (!url.searchParams.has("before_seq")) {
++      await route.continue();
++      return;
++    }
++    beforeSeqRequests.push(url.searchParams.get("before_seq")!);
++    if (firstOlderRequest) {
++      firstOlderRequest = false;
++      signalIntercepted();
++      await held;
++    }
++    await route.continue();
++  });
++
++  await page.goto("/app");
++  await page.getByRole("link", { name: `# ${channel.name}` }).click();
++  await expect(page.getByText("Held message 450", { exact: true })).toBeVisible();
++
++  const scroller = page.locator(".messages-scroll");
++  await scroller.evaluate((element) => element.scrollTo({ top: 0 }));
++  await intercepted;
++
++  for (let index = 0; index < 10; index += 1) {
++    await scroller.evaluate((element) => element.scrollTo({ top: 0 }));
++    await page.waitForTimeout(25);
++  }
++
++  // While the first request is held, the state machine must not issue a
++  // second request for the same page.
++  expect(beforeSeqRequests).toHaveLength(1);
++  releaseHeld();
++  await page.waitForTimeout(500);
++  expect(new Set(beforeSeqRequests).size).toBe(beforeSeqRequests.length);
++});
++
++test("continuous backfill remains sequential after settlement", async ({ page }) => {
++  const channel = await createChannel(page, "backfill");
++  await seedMessages(page, channel.id, 650, "Backfill message");
++
++  const beforeSeqRequests: string[] = [];
++  const events: string[] = [];
++  let activeOlderRequests = 0;
++  let maximumActiveOlderRequests = 0;
++
++  await page.route(`**/api/channels/${channel.id}/messages**`, async (route: Route) => {
++    const url = new URL(route.request().url());
++    if (!url.searchParams.has("before_seq")) {
++      await route.continue();
++      return;
++    }
++    const beforeSeq = url.searchParams.get("before_seq")!;
++    beforeSeqRequests.push(beforeSeq);
++    activeOlderRequests += 1;
++    maximumActiveOlderRequests = Math.max(maximumActiveOlderRequests, activeOlderRequests);
++    events.push(`start:${beforeSeq}`);
++    const response = await route.fetch();
++    await route.fulfill({ response });
++    events.push(`end:${beforeSeq}`);
++    activeOlderRequests -= 1;
++  });
++
++  await page.goto("/app");
++  await page.getByRole("link", { name: `# ${channel.name}` }).click();
++  await expect(page.getByText("Backfill message 650", { exact: true })).toBeVisible();
++
++  const scroller = page.locator(".messages-scroll");
++  await scroller.evaluate((element) => element.scrollTo({ top: 0 }));
++
++  // The staged pendingOlderPageIntent removal should chain a second page
++  // automatically if settlement leaves the viewport near the older edge.
++  await expect.poll(() => beforeSeqRequests.length, { timeout: 15_000 }).toBeGreaterThanOrEqual(2);
++  expect(new Set(beforeSeqRequests).size).toBe(beforeSeqRequests.length);
++  expect(maximumActiveOlderRequests).toBe(1);
++  expect(events.indexOf(`end:${beforeSeqRequests[0]}`)).toBeLessThan(
++    events.indexOf(`start:${beforeSeqRequests[1]}`),
++  );
++});
++
++test("stale older response is discarded after switching to another channel", async ({ page }) => {
++  const channelA = await createChannel(page, "channel-a");
++  const channelB = await createChannel(page, "channel-b");
++  await seedMessages(page, channelA.id, 450, "Channel A only");
++  await seedMessages(page, channelB.id, 10, "Channel B only");
++
++  let signalIntercepted!: () => void;
++  const intercepted = new Promise<void>((resolve) => {
++    signalIntercepted = resolve;
++  });
++  let releaseHeld!: () => void;
++  const held = new Promise<void>((resolve) => {
++    releaseHeld = resolve;
++  });
++
++  await page.route(`**/api/channels/${channelA.id}/messages**`, async (route: Route) => {
++    const url = new URL(route.request().url());
++    if (url.searchParams.has("before_seq")) {
++      signalIntercepted();
++      await held;
++    }
++    await route.continue();
++  });
++
++  await page.goto("/app");
++  await page.getByRole("link", { name: `# ${channelA.name}` }).click();
++  await expect(page.getByText("Channel A only 450", { exact: true })).toBeVisible();
++
++  await page.locator(".messages-scroll").evaluate((element) => element.scrollTo({ top: 0 }));
++  await intercepted;
++  await page.getByRole("link", { name: `# ${channelB.name}` }).click();
++  await expect(page.getByText("Channel B only 10", { exact: true })).toBeVisible();
++  releaseHeld();
++  await page.waitForTimeout(750);
++
++  await expect(page.getByText("Channel B only 10", { exact: true })).toBeVisible();
++  await expect(page.getByText("Channel A only 1", { exact: true })).toHaveCount(0);
++});
++
++test("finalMessageId scan preserves turn pairing at bounded input", () => {
++  const messages: Message[] = [];
++  for (let turn = 0; turn < 50; turn += 1) {
++    const turnId = `turn_${turn}`;
++    for (let row = 0; row < 3; row += 1) {
++      messages.push({
++        id: `activity_${turn}_${row}`,
++        workspace_id: "wsp_test",
++        channel_id: "chn_test",
++        author_id: "bot_agent",
++        thread_root_id: `activity_${turn}_${row}`,
++        channel_seq: turn * 4 + row,
++        body: `Tool step ${turn}.${row}`,
++        body_format: "markdown",
++        created_at: `2026-05-09T00:${turn.toString().padStart(2, "0")}:00Z`,
++        kind: "agent_tool",
++        turn_id: turnId,
++      });
++    }
++    messages.push({
++      id: `final_${turn}`,
++      workspace_id: "wsp_test",
++      channel_id: "chn_test",
++      author_id: "bot_agent",
++      thread_root_id: `final_${turn}`,
++      channel_seq: turn * 4 + 3,
++      body: `Final answer ${turn}`,
++      body_format: "markdown",
++      created_at: `2026-05-09T00:${turn.toString().padStart(2, "0")}:30Z`,
++    });
++  }
++
++  const startedAt = Date.now();
++  const coalesced = coalesceAgentActivity(messages, {
++    hideCommentary: false,
++    hideToolCalls: false,
++  });
++  const elapsedMs = Date.now() - startedAt;
++
++  expect(coalesced).toHaveLength(100);
++  for (let turn = 0; turn < 50; turn += 1) {
++    expect(coalesced[turn * 2].preamble_block?.finalMessageId).toBe(`final_${turn}`);
++  }
++  expect(groupMessages(coalesced)).toHaveLength(50);
++  // A generous ceiling catches runaway behavior without pretending to be a
++  // microbenchmark. MAX_MESSAGE_WINDOW supplies the production input bound.
++  expect(elapsedMs).toBeLessThan(2000);
++});

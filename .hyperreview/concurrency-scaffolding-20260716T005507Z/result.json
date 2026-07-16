@@ -1,0 +1,379 @@
+{
+  "schemaVersion": "hyperreview-result/v0",
+  "artifactHeader": {
+    "artifactKind": "hyperreview-result",
+    "artifactContract": "hyperreview-result/v0",
+    "hyperreviewVersion": "0.15.0",
+    "hyperreviewBuild": "installed-vendored-copy",
+    "hyperreviewSource": {
+      "repo": "PsiClawOps/hyperreview-local",
+      "commit": "unknown-installed-copy",
+      "skill": "hyperreview-concurrency"
+    },
+    "emitter": "chisel",
+    "emittedAt": "2026-07-16T00:55:07Z",
+    "validationProfile": "strict"
+  },
+  "reReview": true,
+  "mode": "concurrency-scaffolding",
+  "target": "clickclack-code-mode staged diff",
+  "targetType": "patch",
+  "scope": "Pagination state machine (olderPageState, pendingOlderPageIntent, suppressPagination), agent-activity coalescer finalMessageId scan, message grouping continuesPreambleChain. Excludes generated dist/ build artifacts.",
+  "outputTier": "Full",
+  "targetBinding": {
+    "repo": "/home/lumadmin/.openclaw/workspace-council/chisel/active/clickclack-code-mode",
+    "diffCommand": "git diff --cached",
+    "stagedTree": "9921901c395bb16dc20b25ce3342b16600fc6152",
+    "stagedPathsSha256": "86eb6677590310bb224eb1d350e9f365b8bf9bba2f7d28588e17156180e7d90e",
+    "reviewableChurn": "247 lines across 10 hand-authored files; apps/api/internal/webassets/dist/** excluded"
+  },
+  "reviewerProvenance": {
+    "provider": "ollama",
+    "model": "glm-5.2:cloud",
+    "matrixId": "glm-5.2",
+    "family": "zai",
+    "effort": "max",
+    "runtimeConfirmed": true,
+    "assuranceState": "cross_model_parity"
+  },
+  "escalation": {
+    "author": {
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "family": "openai",
+      "effort": "high"
+    },
+    "reviewer": {
+      "provider": "ollama",
+      "model": "glm-5.2:cloud",
+      "matrixId": "glm-5.2",
+      "family": "zai",
+      "effort": "max"
+    },
+    "independence": "xfam",
+    "assuranceState": "cross_model_parity",
+    "matrixVersion": "0.4.0",
+    "matrixSha256": "522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6"
+  },
+  "artifactAdjudication": {
+    "independentReviewer": "ollama/glm-5.2:cloud, family zai, effort max",
+    "parentValidator": "openai/gpt-5.6-sol, family openai, effort high",
+    "verdictChanged": false,
+    "corrections": [
+      "added machine-readable reviewer, escalation, and exact target-binding fields",
+      "made duplicate-load and sequential-backfill assertions non-tautological",
+      "made the stale-response test await interception before switching channels",
+      "removed an unsupported universal runtime claim from the complexity disposition"
+    ]
+  },
+  "verdict": "PASS",
+  "evidenceSources": [
+    {
+      "id": "ev-chatapp-history",
+      "kind": "file",
+      "description": "apps/web/src/ChatApp.svelte lines 1300-1370: handleHistorySettled, requestOlderMessages, loadOlderMessages",
+      "refs": [{"kind": "file", "ref": "apps/web/src/ChatApp.svelte:1300-1370"}]
+    },
+    {
+      "id": "ev-messagelist-scroll",
+      "kind": "file",
+      "description": "apps/web/src/components/messages/MessageList.svelte lines 119-350,780-810: olderLoadThreshold, handleScroll, suppressPagination",
+      "refs": [{"kind": "file", "ref": "apps/web/src/components/messages/MessageList.svelte:119-350,780-810"}]
+    },
+    {
+      "id": "ev-agent-activity",
+      "kind": "file",
+      "description": "apps/web/src/lib/chat/agent-activity.ts lines 170-260: coalesceAgentActivity, finals loop, finalMessageId scan",
+      "refs": [{"kind": "file", "ref": "apps/web/src/lib/chat/agent-activity.ts:170-260"}]
+    },
+    {
+      "id": "ev-messages-grouping",
+      "kind": "file",
+      "description": "apps/web/src/lib/chat/messages.ts lines 78-118: groupMessages, continuesPreambleChain",
+      "refs": [{"kind": "file", "ref": "apps/web/src/lib/chat/messages.ts:78-118"}]
+    },
+    {
+      "id": "ev-messagewindow-constants",
+      "kind": "file",
+      "description": "apps/web/src/lib/chat/messageWindow.ts: MAX_MESSAGE_WINDOW = 2400, INITIAL_MESSAGE_LIMIT = 200, PAGE_MESSAGE_LIMIT = 200",
+      "refs": [{"kind": "file", "ref": "apps/web/src/lib/chat/messageWindow.ts:1-93"}]
+    },
+    {
+      "id": "ev-types-preamble",
+      "kind": "file",
+      "description": "apps/web/src/lib/types.ts lines 90-100: PreambleBlock.finalMessageId optional field",
+      "refs": [{"kind": "file", "ref": "apps/web/src/lib/types.ts:90-100"}]
+    },
+    {
+      "id": "ev-test-message-window",
+      "kind": "test",
+      "description": "tests/e2e/message-window.spec.ts: unit tests for trim, coalesce, group, finalMessageId",
+      "refs": [{"kind": "test", "ref": "tests/e2e/message-window.spec.ts"}]
+    },
+    {
+      "id": "ev-test-chat-history",
+      "kind": "test",
+      "description": "tests/e2e/chat.spec.ts lines 425-480: existing history backfill E2E test",
+      "refs": [{"kind": "test", "ref": "tests/e2e/chat.spec.ts:425-480"}]
+    },
+    {
+      "id": "ev-staged-tree",
+      "kind": "command",
+      "description": "git write-tree output: staged tree 9921901c395bb16dc20b25ce3342b16600fc6152",
+      "refs": [{"kind": "command", "ref": "git write-tree"}]
+    },
+    {
+      "id": "ev-parity-matrix",
+      "kind": "doc",
+      "description": "reviewer-parity-matrix.v0.json v0.4.0 sha256 522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6",
+      "refs": [{"kind": "doc", "ref": "contracts/reviewer-parity-matrix.v0.json"}]
+    }
+  ],
+  "coverage": {
+    "scopeReviewed": [
+      "Pagination state machine: olderPageState transitions, pendingOlderPageIntent removal, suppressPagination guard",
+      "Agent-activity coalescer: finalMessageId linear scan, turn boundary detection, finals Map",
+      "Message grouping: continuesPreambleChain exception, finalMessageId matching",
+      "MessageWindow constants: MAX_MESSAGE_WINDOW=2400, INITIAL_MESSAGE_LIMIT=200, PAGE_MESSAGE_LIMIT=200",
+      "PreambleBlock type: finalMessageId optional field addition",
+      "Existing tests: message-window.spec.ts, chat.spec.ts history backfill test",
+      "Reentrancy: requestOlderMessages, loadOlderMessages, handleScroll inline load",
+      "Duplicate load: before_seq uniqueness via olderPageState and loadingMessagePages guards",
+      "Stale callback: currentConversationKey guard in loadOlderMessages (preexisting, unchanged)",
+      "Page-state ordering: idle -> loading -> settling -> idle transition sequence"
+    ],
+    "scopeNotReviewed": [
+      "Generated dist/ build artifacts (minified bundles)",
+      "Server-side API changes (none in diff)",
+      "CSS styling changes in MessageRow.svelte (visual only, no concurrency surface)",
+      "MessageList.svelte scroll restoration logic beyond suppressPagination interaction"
+    ],
+    "coverageLevel": "high",
+    "limitations": [
+      "Tests not executed in this review session (Playwright not run, Go not installed)",
+      "Race harness provided as patch for CI execution, not run in-session"
+    ]
+  },
+  "confidence": {
+    "level": "high",
+    "score": 0.88,
+    "rationale": "All concurrency-relevant code paths traced through real source. Reentrancy guards verified in requestOlderMessages, loadOlderMessages, and handleScroll. finalMessageId complexity bounded by MAX_MESSAGE_WINDOW. Stale callback risk confirmed preexisting and out of scope. Race harness provides executable verification. Remaining uncertainty: tests not executed in this session."
+  },
+  "analysisPackage": [
+    "reentrancy-assessment",
+    "duplicate-load-detection",
+    "stale-callback-analysis",
+    "page-state-ordering",
+    "finalMessageId-complexity",
+    "suppressPagination-asymmetry-resolution",
+    "pendingOlderPageIntent-removal-adjudication"
+  ],
+  "passesRun": [
+    "changed-surface",
+    "test-evidence",
+    "judge"
+  ],
+  "conditionalPassesSkipped": [
+    {
+      "id": "finding-ledger",
+      "reason": "No findings to ledger. Clean result.",
+      "evidence": "All concurrency analysis paths traced through source with no accepted findings. Rejected findings documented in rejectedFindings."
+    }
+  ],
+  "findings": [],
+  "rejectedFindings": [
+    {
+      "id": "RF-001",
+      "title": "pendingOlderPageIntent removal causes unbounded backfill",
+      "severity": "low",
+      "confidence": {
+        "level": "low",
+        "score": 0.1,
+        "rationale": "Rejected: the olderPageState !== idle reentrancy guard in requestOlderMessages and loadOlderMessages prevents overlapping requests."
+      },
+      "symptom": "Candidate packet 003000Z claimed unbounded backfill from removing pendingOlderPageIntent",
+      "source": "prior candidate packet 003000Z",
+      "consequence": "None observed. The guard chain prevents the claimed behavior.",
+      "remedy": "No remedy needed. The claim is false.",
+      "verification": "Trace requestOlderMessages -> olderPageState guard -> early return. Trace loadOlderMessages -> olderPageState + loadingMessagePages double guard.",
+      "evidenceRefs": ["ev-chatapp-history"]
+    },
+    {
+      "id": "RF-002",
+      "title": "suppressPagination asymmetry is harmful",
+      "severity": "low",
+      "confidence": {
+        "level": "low",
+        "score": 0.15,
+        "rationale": "Rejected: the asymmetry is now resolved. Both paths have the guard. suppressPagination is only true during 2-frame programmatic scroll restoration."
+      },
+      "symptom": "Older inline load path lacked suppressPagination guard that newer path had",
+      "source": "diff analysis of handleScroll",
+      "consequence": "None observed. Guard only active during 2-frame suppression window.",
+      "remedy": "No remedy needed. The diff adds the guard, making both paths symmetric.",
+      "verification": "Read handleScroll: both older and newer paths now check !suppressPagination.",
+      "evidenceRefs": ["ev-messagelist-scroll"]
+    },
+    {
+      "id": "RF-003",
+      "title": "finalMessageId scan is O(n^2) and could cause jank",
+      "severity": "low",
+      "confidence": {
+        "level": "low",
+        "score": 0.2,
+        "rationale": "Rejected as a staged concurrency defect: MAX_MESSAGE_WINDOW = 2400 bounds the scan, and same-author turn boundaries or the exact final message terminate typical scans early."
+      },
+      "symptom": "Linear scan per turn in the finals loop could be O(T * N)",
+      "source": "agent-activity.ts lines 194-210",
+      "consequence": "No correctness or liveness defect established. The pathological cost remains bounded by MAX_MESSAGE_WINDOW = 2400.",
+      "remedy": "No staged-diff remedy required. Track performance only if production telemetry shows message-coalescing jank.",
+      "verification": "Read finals loop: break on a different same-author turn and on the first same-author ordinary message. MAX_MESSAGE_WINDOW bounds N.",
+      "evidenceRefs": ["ev-agent-activity", "ev-messagewindow-constants"]
+    }
+  ],
+  "findingLedger": [
+    {
+      "scope": "concurrency-scaffolding review of clickclack-code-mode staged diff",
+      "result": "clean",
+      "checked": "reentrancy, duplicate loads, stale callbacks, page-state ordering, finalMessageId complexity, suppressPagination asymmetry"
+    }
+  ],
+  "lenses": [
+    {
+      "lensId": "build-contract",
+      "verdict": "PASS",
+      "notes": "All concurrency guards verified against source. No reentrancy, duplicate load, or ordering violation found."
+    },
+    {
+      "lensId": "regression-failure-mode",
+      "verdict": "PASS",
+      "notes": "suppressPagination guard addition prevents regression during programmatic scroll restoration. finalMessageId scan bounded by MAX_MESSAGE_WINDOW."
+    },
+    {
+      "lensId": "integration-interface",
+      "verdict": "PASS",
+      "notes": "PreambleBlock.finalMessageId type addition is backward-compatible (optional field). groupMessages continuesPreambleChain uses the new field correctly."
+    }
+  ],
+  "skippedLenses": [
+    {
+      "lensId": "data-boundary-security",
+      "reason": "No network, auth, credentials, or user data surface changes in this diff."
+    },
+    {
+      "lensId": "authority-provenance",
+      "reason": "No authority, identity, or delegation surface changes."
+    },
+    {
+      "lensId": "recall-quality",
+      "reason": "No memory, search, or context retrieval changes."
+    },
+    {
+      "lensId": "design-operator-experience",
+      "reason": "No UI/operator-facing visual changes beyond preamble grouping behavior covered by existing tests."
+    },
+    {
+      "lensId": "clarity-operator-ergonomics",
+      "reason": "No CLI, error message, or operator output changes."
+    }
+  ],
+  "cleanResult": {
+    "status": "no-findings",
+    "statement": "Checked reentrancy (requestOlderMessages, loadOlderMessages, handleScroll), duplicate loads (before_seq uniqueness), stale callbacks (A-to-B discard plus static A-to-B-to-A analysis), page-state ordering (idle -> loading -> settling -> idle), finalMessageId complexity (bounded by MAX_MESSAGE_WINDOW = 2400), and the scroll-handler suppressPagination guard. No staged-diff findings under reviewed scope.",
+    "scopeChecked": [
+      "reentrancy",
+      "duplicate-loads",
+      "stale-callbacks",
+      "page-state-ordering",
+      "finalMessageId-complexity",
+      "suppressPagination-asymmetry"
+    ]
+  },
+  "reportQuality": {
+    "status": "passed",
+    "checks": [
+      "mode named and matches lifecycle moment",
+      "target, targetType, and scope exact",
+      "gate mode and blocking authority explicit",
+      "evidence sources concrete and sufficient",
+      "coverage states what was and was not reviewed",
+      "confidence stated separately from severity",
+      "required passes listed in passesRun",
+      "skipped conditional pass recorded with reason",
+      "rejected findings preserved with evidence",
+      "clean result explicitly states what was checked",
+      "no speculative findings accepted",
+      "verdict follows mode contract",
+      "blocksStage is false",
+      "reviewer provenance recorded",
+      "cross-model escalation recorded",
+      "tree and path bindings recorded",
+      "validation outputs recorded"
+    ]
+  },
+  "nextAction": "no-action",
+  "gateMode": "blocking",
+  "blocksStage": false,
+  "activationPlan": {
+    "requestedWorkShapes": ["async-pagination", "shared-state-mutation", "agent-activity-coalescing"],
+    "normalizedWorkShapes": ["pagination-state-machine", "reentrancy-guard", "linear-scan-finality"],
+    "normalizationActions": [],
+    "activatedPasses": [
+      { "id": "changed-surface", "reason": "Required for concurrency-scaffolding mode", "sourceSignal": "staged diff", "mandatory": true },
+      { "id": "test-evidence", "reason": "Required for concurrency-scaffolding mode", "sourceSignal": "existing and new tests", "mandatory": true },
+      { "id": "judge", "reason": "Required for all reviews", "sourceSignal": "mode contract", "mandatory": true }
+    ],
+    "skippedConditionalPasses": [
+      {
+        "id": "finding-ledger",
+        "reason": "No findings to ledger. Clean result.",
+        "evidence": "All concurrency analysis paths traced through source with no accepted findings."
+      }
+    ],
+    "selectedDepth": "deep",
+    "depthPromotionReason": "Full tier requested by operator. Concurrency-scaffolding mode is blocking-capable.",
+    "requiredEvidence": ["target", "shared state", "execution strategy"],
+    "codeAnalysisRequirements": {
+      "status": "not-required",
+      "artifactRefs": []
+    },
+    "requestDisposition": "continue",
+    "expectedFollowupMode": "none"
+  },
+  "executionStrategy": {
+    "strategy": "single-model",
+    "rationale": "Single reviewer model (glm-5.2:cloud/max) as cross-family independent reviewer for openai-authored diff.",
+    "sources": ["reviewer-parity-matrix.v0.json v0.4.0"]
+  },
+  "testsOrCommands": [
+    {
+      "label": "git apply --check (race-harness.patch)",
+      "command": "git apply --check .hyperreview/concurrency-scaffolding-20260716T005507Z/race-harness.patch",
+      "result": "exit 0, no output",
+      "status": "passed"
+    },
+    {
+      "label": "Playwright race harness (not run)",
+      "command": "npx playwright test tests/e2e/concurrency-race-harness.spec.ts --project=chromium --workers=1 --reporter=line",
+      "result": "not run in this session",
+      "status": "not-run"
+    },
+    {
+      "label": "Go race detector (not applicable)",
+      "command": "go test -race ./...",
+      "result": "Go is not installed. This is a TypeScript/Svelte codebase; Playwright is the correct test runner.",
+      "status": "not-applicable"
+    }
+  ],
+  "validationOutputs": {
+    "schema": "Draft202012Validator: 0 errors",
+    "patchApply": "git apply --check: exit 0, no output",
+    "treeBinding": "git write-tree: 9921901c395bb16dc20b25ce3342b16600fc6152",
+    "pathBinding": "git diff --cached --name-only | sha256sum: 86eb6677590310bb224eb1d350e9f365b8bf9bba2f7d28588e17156180e7d90e"
+  },
+  "artifacts": [
+    { "kind": "patch", "ref": ".hyperreview/concurrency-scaffolding-20260716T005507Z/race-harness.patch", "description": "Race harness test patch" },
+    { "kind": "file", "ref": ".hyperreview/concurrency-scaffolding-20260716T005507Z/summary.md", "description": "Review summary" },
+    { "kind": "file", "ref": ".hyperreview/concurrency-scaffolding-20260716T005507Z/result.json", "description": "Schema-valid result artifact" }
+  ]
+}
