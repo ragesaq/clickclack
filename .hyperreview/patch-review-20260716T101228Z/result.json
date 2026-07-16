@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "hyperreview-result/v0",
+  "artifactHeader": {
+    "artifactKind": "hyperreview-result",
+    "artifactContract": "hyperreview-result/v0",
+    "hyperreviewVersion": "0.15.0",
+    "hyperreviewBuild": "patch-review-20260716T101228Z",
+    "hyperreviewSource": {
+      "repo": "PsiClawOps/hyperreview-local",
+      "commit": "unknown-installed-copy",
+      "skill": "hyperreview-patch"
+    },
+    "emitter": "codex-native-skill",
+    "emittedAt": "2026-07-16T10:12:28Z",
+    "validationProfile": "strict"
+  },
+  "mode": "patch-review",
+  "target": {
+    "repoPath": "/home/lumadmin/.openclaw/workspace/repo/clickclack-stock",
+    "branch": "feat/code-rail-preamble-combined",
+    "base": "afb45e4d16ebb2e0a9d8664e80142c401ce58a52",
+    "head": "58beae8850d6762cb315f800a574df362a89d7f7",
+    "tree": "75279766181e6c5a5bd33743a06f3d9ce45265af",
+    "pathsSha256": "2a08e160b9d97db489d179a09df5f9b98dfe6c26de65abe6e5a39e9ebde0612a",
+    "reviewableChurn": 594,
+    "paths": [
+      "apps/web/src/ChatApp.svelte",
+      "apps/web/src/components/code/CodeWorkspaceRail.svelte",
+      "apps/web/src/lib/code/railPreferences.ts",
+      "apps/web/src/styles/code-workspace.css",
+      "tests/e2e/code-channel-mode.spec.ts",
+      "tests/e2e/code-rail.spec.ts"
+    ]
+  },
+  "targetType": "branch",
+  "scope": "The single rail-shell commit from accepted code-room base afb45e4 to exact head 58beae8: desktop collapse, per-user persistence, Channel Settings popover, responsive fallback, and focused browser coverage.",
+  "verdict": "PASS",
+  "evidenceSources": [
+    {
+      "id": "ev-diff",
+      "kind": "diff",
+      "description": "Exact six-file branch diff and nearby source inspected against accepted base afb45e4.",
+      "refs": [
+        { "kind": "commit", "ref": "afb45e4d16ebb2e0a9d8664e80142c401ce58a52..58beae8850d6762cb315f800a574df362a89d7f7" }
+      ]
+    },
+    {
+      "id": "ev-node24-check",
+      "kind": "command",
+      "description": "Full repository check passed under the declared Node 24 engine with Go on PATH.",
+      "refs": [
+        { "kind": "command", "ref": "PNPM_JS=$(readlink -f $(command -v pnpm)) PATH=/usr/local/go/bin:$PATH npx -y node@24 $PNPM_JS check" }
+      ]
+    },
+    {
+      "id": "ev-focused-e2e",
+      "kind": "test",
+      "description": "Focused Chromium coverage passed for room mode and the new rail/settings surface.",
+      "refs": [
+        { "kind": "command", "ref": "PATH=/usr/local/go/bin:$PATH pnpm exec playwright test tests/e2e/code-channel-mode.spec.ts tests/e2e/code-rail.spec.ts --project=chromium" }
+      ]
+    },
+    {
+      "id": "ev-repeat-e2e",
+      "kind": "test",
+      "description": "The changed rail/settings timing surface passed 15 of 15 Chromium cases across five repetitions with four workers under Node 24.",
+      "refs": [
+        { "kind": "command", "ref": "PATH=/usr/local/go/bin:$PATH npx -y node@24 $PNPM_JS exec playwright test tests/e2e/code-rail.spec.ts --project=chromium --repeat-each=5" }
+      ]
+    },
+    {
+      "id": "ev-lineage",
+      "kind": "other",
+      "description": "Ancestry and omitted-commit inspection prove accepted baseline features remain and the reskin/provenance commits are separate slices.",
+      "refs": [
+        { "kind": "commit", "ref": "afb45e4d16ebb2e0a9d8664e80142c401ce58a52" },
+        { "kind": "commit", "ref": "187b91e" },
+        { "kind": "commit", "ref": "55bab00" }
+      ]
+    }
+  ],
+  "coverage": {
+    "scopeReviewed": [
+      "exact branch ancestry and six-file diff",
+      "expanded and 46px collapsed rail rendering",
+      "per-user device-local persistence",
+      "Channel Settings open, mode switch, Escape, focus restoration, and outside-pointer dismissal",
+      "desktop and sub-1100px responsive layout",
+      "preservation of accepted compact agent row, notes, PR status, and preamble lineage",
+      "focused and repeated browser tests",
+      "full repository check under Node 24"
+    ],
+    "scopeNotReviewed": [
+      "live deployment behavior",
+      "slate reskin commit 187b91e",
+      "provenance and bot-write commit 55bab00",
+      "unrelated accepted-base behavior outside the touched rail integration"
+    ],
+    "coverageLevel": "complete-for-scope",
+    "limitations": [
+      "The author medium-effort tuple is not an exact eligibility row in reviewer matrix v0.4.0, so this different-family review is advisory rather than parity-cleared.",
+      "A mixed repeat run exposed an unchanged global bot-handle collision in code-channel-mode.spec.ts; the changed rail suite was isolated and passed 15 of 15."
+    ]
+  },
+  "confidence": {
+    "level": "high",
+    "anchor": 100,
+    "score": 0.96,
+    "rationale": "Exact source inspection, Node 24 full gates, focused browser coverage, and five repeated runs agree on the changed surface. The only stress failure was traced to unchanged globally unique test data outside the new rail flow."
+  },
+  "analysisPackage": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "finding-ledger",
+    "judge"
+  ],
+  "passesRun": [
+    "changed-surface",
+    "contract-correctness",
+    "test-evidence",
+    "finding-ledger",
+    "judge"
+  ],
+  "conditionalPassesSkipped": [
+    { "id": "boundary-threat", "reason": "No auth, credential, secret, network, or new server data boundary changed.", "evidence": "The diff is client rail state, presentation, local preference storage, and tests." },
+    { "id": "authority-provenance", "reason": "No authority rule changed.", "evidence": "Existing canManage and updating gates remain on the room-mode buttons." },
+    { "id": "operational-impact", "reason": "No deploy, service, install, or runtime operation changed.", "evidence": "Exact head is source-only and was not deployed." },
+    { "id": "migration-safety", "reason": "No schema or durable server data migration changed.", "evidence": "The added preference is best-effort device-local localStorage keyed by user id." },
+    { "id": "code-map-evidence", "reason": "The six-file UI flow is directly traceable without a structural map.", "evidence": "ChatApp owns state, CodeWorkspaceRail renders interaction, railPreferences persists, CSS lays out, and two E2E files verify it." }
+  ],
+  "findings": [],
+  "rejectedFindings": [],
+  "findingLedger": [
+    { "id": "CLEAN-001", "status": "clean", "reason": "Checked the exact six-file branch diff, nearby source, accepted lineage, focus lifecycle, persistence, responsive behavior, and executable tests; no findings under reviewed scope." },
+    { "id": "C-001", "status": "rejected", "reason": "Concurrency route is inapplicable: await tick sequences a single event loop and no shared mutable state or parallel executor exists." },
+    { "id": "C-002", "status": "rejected-pre-existing", "reason": "Mixed repeated mode-test failures come from unchanged globally unique handle chisel-stock, not the changed rail/settings implementation." },
+    { "id": "C-003", "status": "rejected", "reason": "User-scoped localStorage keys and reactive user-id reload prevent cross-account preference leakage." },
+    { "id": "C-004", "status": "rejected", "reason": "The sub-1100px media rule restores one-column top-bar layout, preventing the 46px side-strip conflict." },
+    { "id": "C-005", "status": "out-of-scope", "reason": "Slate reskin 187b91e and provenance commit 55bab00 are independent product slices and not prerequisites for this rail shell." }
+  ],
+  "lenses": [
+    { "lensId": "build-contract", "verdict": "PASS", "notes": "Collapse, settings, persistence, responsive, and preserved baseline contracts are implemented and tested." },
+    { "lensId": "integration-interface", "verdict": "PASS", "notes": "ChatApp state, rail component props, local preference helper, CSS, and E2E agree." },
+    { "lensId": "regression-failure-mode", "verdict": "PASS", "notes": "Focused 4 of 4 and changed-surface repeated 15 of 15 browser tests pass." },
+    { "lensId": "design-operator-experience", "verdict": "PASS", "notes": "The rail returns 314px of width, room mode moves behind Channel Settings, keyboard focus is restored, and mobile avoids a side strip." }
+  ],
+  "skippedLenses": [
+    { "lensId": "data-boundary-security", "reason": "No trust, secret, auth, or server-data boundary changed." },
+    { "lensId": "authority-provenance", "reason": "Existing management authority is preserved without modification." },
+    { "lensId": "recall-quality", "reason": "No memory, retrieval, or ranking behavior changed." }
+  ],
+  "activeDecisionContractsChecked": [
+    "WQ-CLICKCLACK-CODE-01 accepted code-room baseline",
+    "operator rail minimize and Channel Settings acceptance contract"
+  ],
+  "lifecyclePromotionCandidates": [],
+  "decisionDeltaCandidates": [],
+  "cleanResult": {
+    "status": "no-findings",
+    "statement": "Checked the exact rail-shell branch against the accepted code-room baseline; no accepted blocker or warning remains.",
+    "scopeChecked": ["six-file diff", "lineage", "Node 24 full gate", "focused E2E", "repeated rail E2E"]
+  },
+  "reportQuality": {
+    "status": "passed",
+    "checks": [
+      "target pinned to exact base, head, and tree",
+      "reviewable churn computed mechanically",
+      "required passes completed",
+      "conditional pass skips recorded",
+      "full repository gate run under declared Node engine",
+      "changed timing surface stress-repeated",
+      "rejected candidates preserve evidence and scope",
+      "cross-family provenance and degraded assurance recorded"
+    ]
+  },
+  "nextAction": "no-action",
+  "gateMode": "blocking",
+  "blocksStage": false,
+  "activationPlan": {
+    "requestedWorkShapes": ["exact-head review of combined code-room rail branch"],
+    "normalizedWorkShapes": ["patch-review"],
+    "normalizationActions": [
+      { "action": "reflex-escalation", "rationale": "594 reviewable lines exceeded the 400-line reflex threshold; branch target and more than 500 changed lines forced Full tier." },
+      { "action": "specialist-scope-correction", "rationale": "The mechanical await content match proposed concurrency, but the concurrency scope gate was INVALID because no concurrent primitive or shared mutable state exists; patch-review owns the actual lifecycle decision." }
+    ],
+    "activatedPasses": [
+      { "id": "changed-surface", "reason": "Six UI and test files changed.", "sourceSignal": "git diff", "mandatory": true },
+      { "id": "contract-correctness", "reason": "Rail density and settings interaction contracts changed.", "sourceSignal": "operator acceptance plus component diff", "mandatory": true },
+      { "id": "test-evidence", "reason": "Focused and repeated browser behavior governs this UI surface.", "sourceSignal": "Playwright tests", "mandatory": true },
+      { "id": "finding-ledger", "reason": "Full-tier review preserves rejected candidates and the scoped clean result.", "sourceSignal": "Full-tier escalation", "mandatory": false },
+      { "id": "judge", "reason": "An exact-head readiness verdict is required.", "sourceSignal": "patch-review contract", "mandatory": true }
+    ],
+    "skippedConditionalPasses": [
+      { "id": "boundary-threat", "reason": "No trust crossing.", "evidence": "Client rail and tests only." },
+      { "id": "authority-provenance", "reason": "No authority change.", "evidence": "canManage gate retained." },
+      { "id": "operational-impact", "reason": "No operational surface.", "evidence": "Source-only exact head." },
+      { "id": "migration-safety", "reason": "No migration.", "evidence": "Device-local preference only." },
+      { "id": "code-map-evidence", "reason": "Direct ownership flow is traceable.", "evidence": "Six files with explicit state, render, persistence, layout, and tests." }
+    ],
+    "selectedDepth": "deep",
+    "depthPromotionReason": "Branch target and 594 reviewable lines triggered Full tier.",
+    "requiredEvidence": ["exact diff", "nearby source", "accepted lineage", "Node 24 full check", "focused E2E", "repeated changed-surface E2E"],
+    "codeAnalysisRequirements": { "status": "required-used", "tool": "git, rg, Playwright, TypeScript, Go tests, Oxlint, Oxfmt", "artifactRefs": ["ev-diff", "ev-node24-check", "ev-focused-e2e", "ev-repeat-e2e", "ev-lineage"] },
+    "requestDisposition": "continue",
+    "expectedFollowupMode": "closeout-verification"
+  },
+  "testsOrCommands": [
+    { "command": "PATH=/usr/local/go/bin:$PATH pnpm exec playwright test tests/e2e/code-channel-mode.spec.ts tests/e2e/code-rail.spec.ts --project=chromium", "status": "passed-4-of-4" },
+    { "command": "PNPM_JS=$(readlink -f $(command -v pnpm)) PATH=/usr/local/go/bin:$PATH npx -y node@24 $PNPM_JS check", "status": "passed" },
+    { "command": "PATH=/usr/local/go/bin:$PATH npx -y node@24 $PNPM_JS exec playwright test tests/e2e/code-rail.spec.ts --project=chromium --repeat-each=5", "status": "passed-15-of-15" },
+    { "command": "mixed code-channel-mode plus code-rail repeat-each=5", "status": "rejected-as-branch-signal: 4 unchanged global-handle collisions, 16 passed" }
+  ],
+  "escalation": {
+    "decided": "escalate",
+    "mode": "patch-review",
+    "venue": "openclaw",
+    "independence": "cross-model",
+    "authorProvider": "anthropic",
+    "authorModel": "claude-opus-4-8",
+    "authorEffort": "medium",
+    "reviewerProvider": "openai",
+    "reviewerModel": "gpt-5.6-sol",
+    "reviewerEffort": "high",
+    "familyRelation": "cross-family",
+    "assuranceState": "no_eligible_parity_reviewer",
+    "matrixPath": "/srv/openclaw/transcripts/agents/chisel/agent/codex-home/skills/_hyperreview-shared/contracts/reviewer-parity-matrix.v0.json",
+    "matrixVersion": "0.4.0",
+    "matrixSha256": "522cec5a35c38d354e7924bf720b9968a8cfcd2c8bc39ae2341fb00dcfc455c6",
+    "reason": "Reflex escalation fired on 594 reviewable lines. Chisel is a different-family reviewer from Facet, but the author's effective medium-effort tuple has no exact matrix eligibility row, so the result is independent but not parity-cleared."
+  },
+  "reflexDecision": {
+    "initialModeCandidate": "concurrency",
+    "candidateTrigger": "diff contains await",
+    "candidateDisposition": "invalid-no-concurrent-surface",
+    "finalMode": "patch-review",
+    "reason": "await tick only sequences focus in a single browser event loop; the specialist scope gate found no asynchronous worker, shared mutable state, lock, queue, thread, or parallel executor."
+  }
+}
